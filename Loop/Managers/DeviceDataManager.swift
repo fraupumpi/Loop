@@ -61,7 +61,16 @@ final class DeviceDataManager {
             if let status = latestPumpStatusFromMySentry {
                 return Double(status.batteryRemainingPercent) / 100
             } else if let status = latestPumpStatus {
-                return batteryChemistry.chargeRemaining(voltage: status.batteryVolts)
+                if batteryChemistry == .alkaline {
+                    // Override RileyLink's voltage percentage calculation, which
+                    // hits zero at 1.20 V; go closer to the
+                    // end of pump comms at 1.16 V.
+                    let alkalineMinVoltage = 1.18
+                    let computed = (status.batteryVolts - alkalineMinVoltage)/(batteryChemistry.maxVoltage - alkalineMinVoltage)
+                    return max(min(computed, 1), 0)
+                } else {
+                    return batteryChemistry.chargeRemaining(voltage: status.batteryVolts)
+                }
             } else {
                 return statusExtensionManager.context?.batteryPercentage
             }
