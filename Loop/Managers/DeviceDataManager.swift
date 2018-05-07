@@ -65,7 +65,7 @@ final class DeviceDataManager {
                     // Override RileyLink's voltage percentage calculation, which
                     // hits zero at 1.20 V; go closer to the
                     // end of pump comms at 1.16 V.
-                    let alkalineMinVoltage = 1.18
+                    let alkalineMinVoltage = 1.17
                     let computed = (status.batteryVolts - alkalineMinVoltage)/(batteryChemistry.maxVoltage - alkalineMinVoltage)
                     return max(min(computed, 1), 0)
                 } else {
