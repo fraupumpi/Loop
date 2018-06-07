@@ -151,6 +151,13 @@ final class WatchDataManager: NSObject, WCSessionDelegate {
                     context.COB = 0.0
                 }
                 
+                let date = state.lastTempBasal?.startDate ?? Date()
+                if let scheduledBasal = manager.basalRateSchedule?.between(start: date, end: date).first {
+                    context.lastNetTempBasalDose =  (state.lastTempBasal?.unitsPerHour)! - scheduledBasal.value
+                } else {
+                    context.lastNetTempBasalDose = nil
+                }
+                
                 if let glucoseTargetRangeSchedule = manager.settings.glucoseTargetRangeSchedule {
                     if let override = glucoseTargetRangeSchedule.override {
                         context.glucoseRangeScheduleOverride = GlucoseRangeScheduleOverrideUserInfo(

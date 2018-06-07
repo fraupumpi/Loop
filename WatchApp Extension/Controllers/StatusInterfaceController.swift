@@ -214,6 +214,23 @@ final class StatusInterfaceController: WKInterfaceController, ContextUpdatable {
                                       valueStr!)
         }
         
+        if let tempBasal = context?.lastNetTempBasalDose {
+            
+            let basalFormatter = NumberFormatter()
+            basalFormatter.numberStyle = .decimal
+            basalFormatter.minimumFractionDigits = 1
+            basalFormatter.maximumFractionDigits = 3
+            basalFormatter.positivePrefix = basalFormatter.plusSign
+            let valueStr = basalFormatter.string(from:NSNumber(value:tempBasal))
+            
+            if statusLabelText != "" { // Not empty - add carriage return
+                statusLabelText += "\n"
+            }
+            statusLabelText += String(format: NSLocalizedString(
+                "Basal %1$@ U/hr",
+                comment: "The subtitle format describing the current temp basal rate. (1: localized basal rate description)"),
+                                      valueStr!)
+        }
         statusLabel.setText(statusLabelText)
         statusLabel.setHidden(false)
 

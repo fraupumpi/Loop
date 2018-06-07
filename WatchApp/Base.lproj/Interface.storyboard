@@ -149,7 +149,7 @@
                                             </items>
                                             <variation key="device=watch42mm" height="29"/>
                                         </group>
-                                        <label alignment="center" verticalAlignment="bottom" textAlignment="left" numberOfLines="0" id="PI8-dB-Ykw">
+                                        <label alignment="center" verticalAlignment="bottom" textAlignment="right" numberOfLines="0" id="PI8-dB-Ykw">
                                             <fontDescription key="font" style="UICTFontTextStyleCaption1"/>
                                         </label>
                                     </items>
