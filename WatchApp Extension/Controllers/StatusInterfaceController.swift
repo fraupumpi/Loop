@@ -17,6 +17,7 @@ final class StatusInterfaceController: WKInterfaceController, ContextUpdatable {
     @IBOutlet weak var glucoseLabel: WKInterfaceLabel!
     @IBOutlet weak var eventualGlucoseLabel: WKInterfaceLabel!
     @IBOutlet weak var statusLabel: WKInterfaceLabel!
+    @IBOutlet weak var basalLabel: WKInterfaceLabel!
 
     @IBOutlet var preMealButton: WKInterfaceButton!
     @IBOutlet var preMealButtonImage: WKInterfaceImage!
@@ -214,8 +215,8 @@ final class StatusInterfaceController: WKInterfaceController, ContextUpdatable {
                                       valueStr!)
         }
         
+        basalLabel.setHidden(true)
         if let tempBasal = context?.lastNetTempBasalDose {
-            
             let basalFormatter = NumberFormatter()
             basalFormatter.numberStyle = .decimal
             basalFormatter.minimumFractionDigits = 1
@@ -223,14 +224,14 @@ final class StatusInterfaceController: WKInterfaceController, ContextUpdatable {
             basalFormatter.positivePrefix = basalFormatter.plusSign
             let valueStr = basalFormatter.string(from:NSNumber(value:tempBasal))
             
-            if statusLabelText != "" { // Not empty - add carriage return
-                statusLabelText += "\n"
-            }
-            statusLabelText += String(format: NSLocalizedString(
+            let basalLabelText = String(format: NSLocalizedString(
                 "Basal %1$@ U/hr",
                 comment: "The subtitle format describing the current temp basal rate. (1: localized basal rate description)"),
                                       valueStr!)
+            basalLabel.setText(basalLabelText)
+            basalLabel.setHidden(false)
         }
+    
         statusLabel.setText(statusLabelText)
         statusLabel.setHidden(false)
 

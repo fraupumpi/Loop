@@ -156,7 +156,13 @@
                                 </group>
                             </items>
                         </group>
-                        <group width="1" height="7" alignment="left" id="rSt-1g-97T"/>
+                        <group width="1" alignment="left" id="rSt-1g-97T">
+                            <items>
+                                <label width="1" alignment="center" verticalAlignment="bottom" textAlignment="right" numberOfLines="0" id="cZW-uY-zIa">
+                                    <fontDescription key="font" style="UICTFontTextStyleCaption1"/>
+                                </label>
+                            </items>
+                        </group>
                         <group width="1" height="0.59999999999999998" alignment="center" verticalAlignment="bottom" id="VU2-MR-CSd">
                             <items>
                                 <group width="0.5" alignment="left" layout="vertical" id="wJu-fl-xhv">
@@ -251,6 +257,7 @@
                         </group>
                     </items>
                     <connections>
+                        <outlet property="basalLabel" destination="cZW-uY-zIa" id="tsU-ob-kZa"/>
                         <outlet property="eventualGlucoseLabel" destination="0zU-nK-BWD" id="0V7-RE-Lnr"/>
                         <outlet property="glucoseLabel" destination="MHD-Is-5mK" id="MDr-iV-fr1"/>
                         <outlet property="loopHUDImage" destination="Q7C-xN-eH8" id="CIe-B3-umI"/>
