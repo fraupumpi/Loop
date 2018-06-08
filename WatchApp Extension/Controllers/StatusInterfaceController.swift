@@ -206,8 +206,8 @@ final class StatusInterfaceController: WKInterfaceController, ContextUpdatable {
             carbFormatter.maximumFractionDigits = 0
             let valueStr = carbFormatter.string(from:NSNumber(value:carbsOnBoard))
             
-            if statusLabelText != "" { // Not empty - add carriage return
-                statusLabelText += "\n"
+            if statusLabelText != "" { // Not empty - add space; TODO layout properly
+                statusLabelText += "  "
             }
             statusLabelText += String(format: NSLocalizedString(
                 "COB %1$@ g",
@@ -225,7 +225,7 @@ final class StatusInterfaceController: WKInterfaceController, ContextUpdatable {
             let valueStr = basalFormatter.string(from:NSNumber(value:tempBasal))
             
             let basalLabelText = String(format: NSLocalizedString(
-                "Basal %1$@ U/hr",
+                "%1$@ U/hr",
                 comment: "The subtitle format describing the current temp basal rate. (1: localized basal rate description)"),
                                       valueStr!)
             basalLabel.setText(basalLabelText)

@@ -149,7 +149,7 @@
                                             </items>
                                             <variation key="device=watch42mm" height="29"/>
                                         </group>
-                                        <label alignment="center" verticalAlignment="bottom" textAlignment="right" numberOfLines="0" id="PI8-dB-Ykw">
+                                        <label width="1" alignment="center" verticalAlignment="bottom" textAlignment="center" minimumScaleFactor="0.5" id="cZW-uY-zIa">
                                             <fontDescription key="font" style="UICTFontTextStyleCaption1"/>
                                         </label>
                                     </items>
@@ -158,7 +158,7 @@
                         </group>
                         <group width="1" alignment="left" id="rSt-1g-97T">
                             <items>
-                                <label width="1" alignment="center" verticalAlignment="bottom" textAlignment="right" numberOfLines="0" id="cZW-uY-zIa">
+                                <label alignment="center" verticalAlignment="bottom" textAlignment="left" minimumScaleFactor="0.5" id="PI8-dB-Ykw">
                                     <fontDescription key="font" style="UICTFontTextStyleCaption1"/>
                                 </label>
                             </items>
