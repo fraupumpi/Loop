@@ -41,6 +41,7 @@ final class WatchContext: NSObject, RawRepresentable {
     var reservoir: Double?
     var reservoirPercentage: Double?
     var batteryPercentage: Double?
+    var glucoseGraphImageData: Data?
 
     override init() {
         super.init()
@@ -90,6 +91,7 @@ final class WatchContext: NSObject, RawRepresentable {
         recommendedBolusDose = rawValue["rbo"] as? Double
         COB = rawValue["cob"] as? Double
         maxBolus = rawValue["mb"] as? Double
+        glucoseGraphImageData = rawValue["gg"] as? Data
     }
 
     var rawValue: RawValue {
@@ -117,6 +119,7 @@ final class WatchContext: NSObject, RawRepresentable {
         raw["r"] = reservoir
         raw["rbo"] = recommendedBolusDose
         raw["rp"] = reservoirPercentage
+        raw["gg"] = glucoseGraphImageData
 
         return raw
     }

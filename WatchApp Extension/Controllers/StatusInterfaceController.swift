@@ -12,6 +12,7 @@ import WatchConnectivity
 
 final class StatusInterfaceController: WKInterfaceController, ContextUpdatable {
 
+    @IBOutlet weak var glucoseGraph: WKInterfaceImage!
     @IBOutlet weak var loopHUDImage: WKInterfaceImage!
     @IBOutlet weak var loopTimer: WKInterfaceTimer!
     @IBOutlet weak var glucoseLabel: WKInterfaceLabel!
@@ -234,6 +235,12 @@ final class StatusInterfaceController: WKInterfaceController, ContextUpdatable {
     
         statusLabel.setText(statusLabelText)
         statusLabel.setHidden(false)
+        
+        glucoseGraph.setHidden(true)
+        if let glucoseGraphImageData = context?.glucoseGraphImageData, let glucoseGraphImage = UIImage(data: glucoseGraphImageData) {
+            glucoseGraph.setImage(glucoseGraphImage)
+            glucoseGraph.setHidden(false)
+        }
 
     }
 

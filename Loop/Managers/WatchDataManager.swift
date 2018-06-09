@@ -152,14 +152,30 @@ final class WatchDataManager: NSObject, WCSessionDelegate {
                 }
                 
                 let date = state.lastTempBasal?.startDate ?? Date()
-                // Only set this value in the Watch context if there is a temp basal running
-                // that hasn't ended yet: 
+                // Only set this value in the Watch context if there is a temp basal
+                // running that hasn't ended yet:
                 if let scheduledBasal = manager.basalRateSchedule?.between(start: date, end: date).first,  let lastTempBasal = state.lastTempBasal, lastTempBasal.endDate > Date() {
                     context.lastNetTempBasalDose =  (state.lastTempBasal?.unitsPerHour)! - scheduledBasal.value
                 } else {
                     context.lastNetTempBasalDose = nil
                 }
                 
+                // Dummy image for now as a placeholder to see if we can
+                // set and send this:
+                
+                let renderer = UIGraphicsImageRenderer(size: CGSize(width: 270, height: 150))
+                let glucoseGraphData = renderer.pngData { (imContext) in
+                    UIColor.darkGray.setStroke()
+                    imContext.stroke(renderer.format.bounds)
+                    UIColor(red:158/255, green:215/255, blue:245/255, alpha:1).setFill()
+                    imContext.fill(CGRect(x:1, y:1, width:250, height:75))
+                    UIColor(red:145/255, green:211/255, blue:205/255, alpha:1).setFill()
+                    imContext.fill(CGRect(x:130, y:30, width:139, height:115), blendMode: .multiply)
+                }
+                
+                context.glucoseGraphImageData = glucoseGraphData
+                
+ 
                 if let glucoseTargetRangeSchedule = manager.settings.glucoseTargetRangeSchedule {
                     if let override = glucoseTargetRangeSchedule.override {
                         context.glucoseRangeScheduleOverride = GlucoseRangeScheduleOverrideUserInfo(
