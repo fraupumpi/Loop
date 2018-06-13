@@ -11,6 +11,7 @@ import UIKit
 import WatchConnectivity
 import CarbKit
 import LoopKit
+import LoopUI
 
 
 final class WatchDataManager: NSObject, WCSessionDelegate {
@@ -117,7 +118,7 @@ final class WatchDataManager: NSObject, WCSessionDelegate {
 
         let glucose = loopManager.glucoseStore.latestGlucose
         let reservoir = loopManager.doseStore.lastReservoirValue
-
+        
         loopManager.glucoseStore.preferredUnit { (unit, error) in
             loopManager.getLoopState { (manager, state) in
                 let eventualGlucose = state.predictedGlucose?.last
@@ -155,27 +156,29 @@ final class WatchDataManager: NSObject, WCSessionDelegate {
                 // Only set this value in the Watch context if there is a temp basal
                 // running that hasn't ended yet:
                 if let scheduledBasal = manager.basalRateSchedule?.between(start: date, end: date).first,  let lastTempBasal = state.lastTempBasal, lastTempBasal.endDate > Date() {
-                    context.lastNetTempBasalDose =  (state.lastTempBasal?.unitsPerHour)! - scheduledBasal.value
+                    context.lastNetTempBasalDose =  lastTempBasal.unitsPerHour - scheduledBasal.value
                 } else {
                     context.lastNetTempBasalDose = nil
                 }
                 
-                // Dummy image for now as a placeholder to see if we can
-                // set and send this:
+                let glucoseUpdateGroup = DispatchGroup()
+                var glucoseVals: [Double] = []
+                var glucoseDates: [Date] = []
                 
-                let renderer = UIGraphicsImageRenderer(size: CGSize(width: 270, height: 150))
-                let glucoseGraphData = renderer.pngData { (imContext) in
-                    UIColor.darkGray.setStroke()
-                    imContext.stroke(renderer.format.bounds)
-                    UIColor(red:158/255, green:215/255, blue:245/255, alpha:1).setFill()
-                    imContext.fill(CGRect(x:1, y:1, width:250, height:75))
-                    UIColor(red:145/255, green:211/255, blue:205/255, alpha:1).setFill()
-                    imContext.fill(CGRect(x:130, y:30, width:139, height:115), blendMode: .multiply)
+                glucoseUpdateGroup.enter()
+                manager.glucoseStore.getCachedGlucoseValues(start: Date().addingTimeInterval(TimeInterval(minutes: -70))) { (values) in
+                    glucoseVals = values.map({
+                        return $0.quantity.doubleValue(for: unit!)
+                    })
+                    glucoseDates = values.map({
+                        return $0.startDate
+                    })
+                    glucoseUpdateGroup.leave()
                 }
-                
-                context.glucoseGraphImageData = glucoseGraphData
-                
- 
+            
+                // Need the above to complete before we can continue
+                _ = glucoseUpdateGroup.wait(timeout: .distantFuture)
+
                 if let glucoseTargetRangeSchedule = manager.settings.glucoseTargetRangeSchedule {
                     if let override = glucoseTargetRangeSchedule.override {
                         context.glucoseRangeScheduleOverride = GlucoseRangeScheduleOverrideUserInfo(
@@ -184,10 +187,150 @@ final class WatchDataManager: NSObject, WCSessionDelegate {
                             endDate: override.end
                         )
                     }
-
+                    
                     let configuredOverrideContexts = self.deviceDataManager.loopManager.settings.glucoseTargetRangeSchedule?.configuredOverrideContexts ?? []
                     let configuredUserInfoOverrideContexts = configuredOverrideContexts.map { $0.correspondingUserInfoContext }
                     context.configuredOverrideContexts = configuredUserInfoOverrideContexts
+                }
+                
+
+                if glucoseVals.count > 0, let unit = context.preferredGlucoseUnit {
+                    var predictedDates: [Date] = []
+                    var predictedBGs: [Double] = []
+                    if let predictedGlucose = state.predictedGlucose {
+                         predictedBGs = predictedGlucose.map {
+                            $0.quantity.doubleValue(for: unit)
+                        }
+                        predictedDates = predictedGlucose.map {
+                                $0.startDate
+                        }
+                    }
+
+                    // Now create a graphics renderer so that we can capture
+                    //  a PNG snapshot of this view to send to the watch:
+                    let glucoseChartSize = CGSize(width: 270, height: 152)
+                    let renderer = UIGraphicsImageRenderer(size: glucoseChartSize)
+                    // Set scale values for graph
+                    // Make the max be the larger of the current BG values,
+                    // or 175 mg/dl.  And force it to be a multiple of 25.
+                    //  TODO:  Make these values work whether units are
+                    // mg/dl or mmol/L.
+                    // OK to force unwrap this since we know inside this if
+                    // block that we have at least one value.
+                    var dataBGMax = glucoseVals.max()!
+                    //  If predicted value exists and is larger, use that to
+                    // scale the plot instead:
+                    if let predictedBGMax = predictedBGs.max(), predictedBGMax > dataBGMax {
+                            dataBGMax = predictedBGMax
+                        }
+                    let roundedBGMax = CGFloat(25 * (1 + (Int(dataBGMax) / 25)))
+                    let bgMax = roundedBGMax > 175 ? roundedBGMax : 175
+                    let bgMin: CGFloat = 50
+                    
+                    let xMax = glucoseChartSize.width
+                    let yMax = glucoseChartSize.height
+                    let dateMin = Date().addingTimeInterval(TimeInterval(minutes: -60))
+                    let dateMax = Date().addingTimeInterval(TimeInterval(minutes: 60))
+                    let timeMax: CGFloat = CGFloat(dateMax.timeIntervalSince1970.rawValue)
+                    let timeMin: CGFloat = CGFloat(dateMin.timeIntervalSince1970.rawValue)
+                    let yScale = yMax/(bgMax - bgMin)
+                    let xScale = xMax/(timeMax - timeMin)
+                    let xNow: CGFloat = xScale * (CGFloat(Date().timeIntervalSince1970.rawValue) - timeMin)
+                    let pointSize: CGFloat = 8
+                    // When we draw points, they are drawn in a rectangle specified
+                    // by its corner coords, so often need to shift by half a point:
+                    let halfPoint = pointSize / 2
+                    
+                    //let glucoseSpan = Float(glucoseDates.max()!.timeIntervalSince(glucoseDates.min()!))/60.0
+                    
+                    //print("Timespan of glucose data is \(glucoseSpan) minutes.")
+                    var x: CGFloat = 0.0
+                    var y: CGFloat = 0.0
+                    
+                    let pointColor = UIColor(red:158/255, green:215/255, blue:245/255, alpha:1)
+                    let highColor = UIColor(red:158/255, green:158/255, blue:24/255, alpha:1)
+                    let lowColor = UIColor(red:158/255, green:58/255, blue:24/255, alpha:1)
+                    
+
+                    let paragraphStyle = NSMutableParagraphStyle()
+                    paragraphStyle.alignment = .center
+                    
+                    let attrs = [NSAttributedStringKey.font: UIFont(name: "HelveticaNeue", size: 20)!, NSAttributedStringKey.paragraphStyle: paragraphStyle,
+                                NSAttributedStringKey.foregroundColor: UIColor.white]
+                    
+                    
+                    let numberFormatter = NumberFormatter()
+                    numberFormatter.numberStyle = .none
+      //              numberFormatter.minimumFractionDigits = 0
+       //             numberFormatter.maximumFractionDigits = 0
+                    
+                    let bgMaxLabel = numberFormatter.string(from: NSNumber(value: Double(bgMax)))!
+                    let bgMinLabel = numberFormatter.string(from: NSNumber(value: Double(bgMin)))!
+                    let glucoseGraphData = renderer.pngData { (imContext) in
+                        // Draw the box
+                        UIColor.darkGray.setStroke()
+                        imContext.stroke(renderer.format.bounds)
+                        // Mark the current time with a dashed line:
+                        imContext.cgContext.setLineDash(phase: 1, lengths: [6, 6])
+                        imContext.cgContext.setLineWidth(3)
+                        imContext.cgContext.strokeLineSegments(between: [CGPoint(x: xNow, y: 0), CGPoint(x: xNow, y: yMax - 1)])
+                        // Clear the dash pattern:
+                        imContext.cgContext.setLineDash(phase: 0, lengths:[])
+                       // Set color for glucose points:
+                        pointColor.setFill()
+                        // Draw the glucose points:
+                        for (date,bg) in zip(glucoseDates, glucoseVals) {
+                            let bgFloat = CGFloat(bg)
+                            x = xScale * (CGFloat(date.timeIntervalSince1970) - timeMin)
+                            y = yScale * (bgMax - bgFloat)
+                            if bgFloat > bgMax {
+                                // 'high' on graph is low y coords:
+                                y = halfPoint
+                                highColor.setFill()
+                            } else if bgFloat < bgMin {
+                                y = yMax - 2
+                                lowColor.setFill()
+                            } else {
+                                pointColor.setFill()
+                            }
+                            // Start by half a point width back to make
+                            // rectangle centered on where we want point center:
+                            imContext.cgContext.fillEllipse(in: CGRect(x: x - halfPoint, y: y - halfPoint, width: pointSize, height: pointSize))
+                        }
+                        pointColor.setStroke()
+                        imContext.cgContext.setLineDash(phase: 11, lengths: [10, 6])
+                        imContext.cgContext.setLineWidth(3)
+                       // Create a path with the predicted glucose values:
+                        imContext.cgContext.beginPath()
+                        var predictedPoints: [CGPoint] = []
+                        if predictedBGs.count > 2 {
+                            for (date,bg) in zip(predictedDates, predictedBGs) {
+                                let bgFloat = CGFloat(bg)
+                                x = xScale * (CGFloat(date.timeIntervalSince1970) - timeMin)
+                                y = yScale * (bgMax - bgFloat)
+                                predictedPoints.append(CGPoint(x: x, y: y))
+                            }
+                            // Seems like line is cleaner without the first point:
+                            predictedPoints.removeFirst(1)
+                            // Add points to the path, then draw it:
+                            imContext.cgContext.addLines(between: predictedPoints)
+                            imContext.cgContext.strokePath()
+                        }
+                        // Put labels last so they are on top of text or points
+                        // in case of overlap.
+                        // Add a label for max BG on y axis
+                        bgMaxLabel.draw(with: CGRect(x: 6, y: 4, width: 40, height: 40), options: .usesLineFragmentOrigin, attributes: attrs, context: nil)
+                        // Add a label for min BG on y axis
+                        bgMinLabel.draw(with: CGRect(x: 6, y: yMax-30, width: 40, height: 40), options: .usesLineFragmentOrigin, attributes: attrs, context: nil)
+                        let timeLabel = "+1h"
+                        timeLabel.draw(with: CGRect(x: xMax - 50, y: 4, width: 40, height: 40), options: .usesLineFragmentOrigin, attributes: attrs, context: nil)
+                        
+                    }
+                    let graphSizeKB = glucoseGraphData.count/1024
+                    print("Graph size is \(graphSizeKB) kB.")
+
+                    context.glucoseGraphImageData = glucoseGraphData
+ 
                 }
 
                 if let trend = self.deviceDataManager.sensorInfo?.trendType {
