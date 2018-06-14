@@ -13,7 +13,6 @@ import CarbKit
 import LoopKit
 import LoopUI
 
-
 final class WatchDataManager: NSObject, WCSessionDelegate {
 
     unowned let deviceDataManager: DeviceDataManager
@@ -178,25 +177,13 @@ final class WatchDataManager: NSObject, WCSessionDelegate {
             
                 // Need the above to complete before we can continue
                 _ = glucoseUpdateGroup.wait(timeout: .distantFuture)
-
-                if let glucoseTargetRangeSchedule = manager.settings.glucoseTargetRangeSchedule {
-                    if let override = glucoseTargetRangeSchedule.override {
-                        context.glucoseRangeScheduleOverride = GlucoseRangeScheduleOverrideUserInfo(
-                            context: override.context.correspondingUserInfoContext,
-                            startDate: override.start,
-                            endDate: override.end
-                        )
-                    }
-                    
-                    let configuredOverrideContexts = self.deviceDataManager.loopManager.settings.glucoseTargetRangeSchedule?.configuredOverrideContexts ?? []
-                    let configuredUserInfoOverrideContexts = configuredOverrideContexts.map { $0.correspondingUserInfoContext }
-                    context.configuredOverrideContexts = configuredUserInfoOverrideContexts
-                }
-                
-
+                // If we have glucose values, set up a graph to send to the
+                // Watch.
                 if glucoseVals.count > 0, let unit = context.preferredGlucoseUnit {
                     var predictedDates: [Date] = []
                     var predictedBGs: [Double] = []
+                    
+                    //  Predicted BGs:
                     if let predictedGlucose = state.predictedGlucose {
                          predictedBGs = predictedGlucose.map {
                             $0.quantity.doubleValue(for: unit)
@@ -205,16 +192,18 @@ final class WatchDataManager: NSObject, WCSessionDelegate {
                                 $0.startDate
                         }
                     }
+                    
+                    // Set the chart to show an hour of past BGs and an hour of future predictions:
+                    let dateMin = Date().addingTimeInterval(TimeInterval(minutes: -60))
+                    let dateMax = Date().addingTimeInterval(TimeInterval(minutes: 60))
 
-                    // Now create a graphics renderer so that we can capture
-                    //  a PNG snapshot of this view to send to the watch:
-                    let glucoseChartSize = CGSize(width: 270, height: 152)
-                    let renderer = UIGraphicsImageRenderer(size: glucoseChartSize)
                     // Set scale values for graph
                     // Make the max be the larger of the current BG values,
-                    // or 175 mg/dl.  And force it to be a multiple of 25.
-                    //  TODO:  Make these values work whether units are
-                    // mg/dl or mmol/L.
+                    // or 175 mg/dl, and force it to be a multiple of 25 mg/dl.
+                    // If units are mmol/L, go from 3 to 10 for the default scale,
+                    // and round scale to the nearest whole number (so increments
+                    // in max scale of the equivalent of 18 mg/dl).
+ 
                     // OK to force unwrap this since we know inside this if
                     // block that we have at least one value.
                     var dataBGMax = glucoseVals.max()!
@@ -223,61 +212,170 @@ final class WatchDataManager: NSObject, WCSessionDelegate {
                     if let predictedBGMax = predictedBGs.max(), predictedBGMax > dataBGMax {
                             dataBGMax = predictedBGMax
                         }
-                    let roundedBGMax = CGFloat(25 * (1 + (Int(dataBGMax) / 25)))
-                    let bgMax = roundedBGMax > 175 ? roundedBGMax : 175
-                    let bgMin: CGFloat = 50
+                    // Depending on units we set the graph limits differently:
+                    var graphMaxBG: CGFloat
+                    var bgMin: CGFloat
+                    var graphMaxBGIncrement: Int
+                    if unit == HKUnit.millimolesPerLiter() {
+                        graphMaxBG = 10
+                        bgMin = 3
+                        graphMaxBGIncrement = 1
+                    } else {
+                        graphMaxBG = 175
+                        bgMin = 50
+                        graphMaxBGIncrement = 25
+                    }
+                    let roundedBGMax = CGFloat(graphMaxBGIncrement * (1 + (Int(dataBGMax) / graphMaxBGIncrement)))
+                    let bgMax = roundedBGMax > graphMaxBG ? roundedBGMax : graphMaxBG
                     
+                    let glucoseChartSize = CGSize(width: 270, height: 152)
                     let xMax = glucoseChartSize.width
                     let yMax = glucoseChartSize.height
-                    let dateMin = Date().addingTimeInterval(TimeInterval(minutes: -60))
-                    let dateMax = Date().addingTimeInterval(TimeInterval(minutes: 60))
                     let timeMax: CGFloat = CGFloat(dateMax.timeIntervalSince1970.rawValue)
                     let timeMin: CGFloat = CGFloat(dateMin.timeIntervalSince1970.rawValue)
+                    let timeNow: CGFloat = CGFloat(Date().timeIntervalSince1970.rawValue)
                     let yScale = yMax/(bgMax - bgMin)
                     let xScale = xMax/(timeMax - timeMin)
-                    let xNow: CGFloat = xScale * (CGFloat(Date().timeIntervalSince1970.rawValue) - timeMin)
+                    let xNow: CGFloat = xScale * (timeNow - timeMin)
                     let pointSize: CGFloat = 8
                     // When we draw points, they are drawn in a rectangle specified
                     // by its corner coords, so often need to shift by half a point:
                     let halfPoint = pointSize / 2
                     
-                    //let glucoseSpan = Float(glucoseDates.max()!.timeIntervalSince(glucoseDates.min()!))/60.0
-                    
-                    //print("Timespan of glucose data is \(glucoseSpan) minutes.")
                     var x: CGFloat = 0.0
                     var y: CGFloat = 0.0
                     
                     let pointColor = UIColor(red:158/255, green:215/255, blue:245/255, alpha:1)
+                    // Target and override are the same, but with different alpha:
+                    let rangeColor = UIColor(red:158/255, green:215/255, blue:245/255, alpha:0.4)
+                    let overrideColor = UIColor(red:158/255, green:215/255, blue:245/255, alpha:0.6)
+                    // Different color for main range(s) when override is active
+                    let rangeOverridenColor = UIColor(red:158/255, green:215/255, blue:245/255, alpha:0.2)
                     let highColor = UIColor(red:158/255, green:158/255, blue:24/255, alpha:1)
                     let lowColor = UIColor(red:158/255, green:58/255, blue:24/255, alpha:1)
                     
 
                     let paragraphStyle = NSMutableParagraphStyle()
                     paragraphStyle.alignment = .center
+                    // Shadowing could help distinguish labels from points?
+                    let shadow : NSShadow = NSShadow()
+                    shadow.shadowOffset = CGSize(width: -20.0, height: -20.0)
                     
                     let attrs = [NSAttributedStringKey.font: UIFont(name: "HelveticaNeue", size: 20)!, NSAttributedStringKey.paragraphStyle: paragraphStyle,
-                                NSAttributedStringKey.foregroundColor: UIColor.white]
+                                NSAttributedStringKey.foregroundColor: UIColor.white, NSAttributedStringKey.shadow : shadow]
                     
                     
                     let numberFormatter = NumberFormatter()
                     numberFormatter.numberStyle = .none
-      //              numberFormatter.minimumFractionDigits = 0
-       //             numberFormatter.maximumFractionDigits = 0
                     
                     let bgMaxLabel = numberFormatter.string(from: NSNumber(value: Double(bgMax)))!
                     let bgMinLabel = numberFormatter.string(from: NSNumber(value: Double(bgMin)))!
+                    
+                    // Now create a graphics renderer so that we can capture
+                    //  a PNG snapshot of this view to send to the watch:
+                    let renderer = UIGraphicsImageRenderer(size: glucoseChartSize)
+
                     let glucoseGraphData = renderer.pngData { (imContext) in
-                        // Draw the box
                         UIColor.darkGray.setStroke()
-                        imContext.stroke(renderer.format.bounds)
                         // Mark the current time with a dashed line:
                         imContext.cgContext.setLineDash(phase: 1, lengths: [6, 6])
                         imContext.cgContext.setLineWidth(3)
                         imContext.cgContext.strokeLineSegments(between: [CGPoint(x: xNow, y: 0), CGPoint(x: xNow, y: yMax - 1)])
                         // Clear the dash pattern:
                         imContext.cgContext.setLineDash(phase: 0, lengths:[])
-                       // Set color for glucose points:
+
+                        // Set color for glucose points and target range:
                         pointColor.setFill()
+                        
+                        //  Plot target ranges:
+                        if let targetRanges = manager.settings.glucoseTargetRangeSchedule {
+                            let chartTargetRanges = targetRanges.between(start: dateMin, end: dateMax)
+                                .map {
+                                    return DatedRangeContext(
+                                        startDate: $0.startDate,
+                                        endDate: $0.endDate,
+                                        minValue: $0.value.minValue,
+                                        maxValue: $0.value.maxValue
+                                    )
+                            }
+                            
+                            rangeColor.setFill()
+
+                            // Check for overrides first, since we will color the main
+                            // range(s) differently depending on active override:
+                            
+                            // Override of target ranges.  Overrides that have
+                            // expired already can still show up here, so we need
+                            // to check and only show if they are active:
+                            if let override = targetRanges.override, override.end ?? .distantFuture > Date() {
+                                let overrideRange = DatedRangeContext(
+                                    startDate: override.start,
+                                    endDate: override.end ?? .distantFuture,
+                                    minValue: override.value.minValue,
+                                    maxValue: override.value.maxValue
+                                )
+                                overrideColor.setFill()
+                                
+                                
+                                // Top left corner is start date and max value:
+                                // Might be off the graph so keep it in:
+                                var targetStart = CGFloat(overrideRange.startDate.timeIntervalSince1970.rawValue)
+                                // Only show the part of the override that is in the future:
+                                if  targetStart < timeNow {
+                                    targetStart = timeNow
+                                }
+                                var targetEnd = CGFloat(overrideRange.endDate.timeIntervalSince1970.rawValue)
+                                if  targetEnd > timeMax {
+                                    targetEnd = timeMax
+                                }
+                                x = xScale * (targetStart - timeMin)
+                                // Don't let end go off the chart:
+                                let xEnd = xScale * (targetEnd - timeMin)
+                                let rangeWidth = xEnd - x
+                                y = yScale * (bgMax - CGFloat(overrideRange.maxValue))
+                                // Make sure range is at least a couple of pixels high:
+                                let rangeHeight = max(yScale * (bgMax - CGFloat(overrideRange.minValue)) - y , 3)
+                                
+                                imContext.cgContext.fill(CGRect(x: x, y: y, width: rangeWidth, height: rangeHeight))
+                                // To mimic the Loop interface, add a second box
+                                // after this that reverts to original target color:
+                                if targetEnd < timeMax {
+                                    rangeColor.setFill()
+                                    imContext.cgContext.fill(CGRect(x: x+rangeWidth, y: y, width: xMax - (x+rangeWidth), height: rangeHeight))
+                                }
+                                // Set a lighter color for main range(s) to follow:
+                                rangeOverridenColor.setFill()
+                            }
+                                
+                            // chartTargetRanges may be an array, so need to
+                            // iterate over it and possibly plot a target change if needed:
+
+                            for targetRange in chartTargetRanges {
+                                // Top left corner is start date and max value:
+                                // Might be off the graph so keep it in:
+                                var targetStart = CGFloat(targetRange.startDate.timeIntervalSince1970.rawValue)
+                                if  targetStart < timeMin {
+                                    targetStart = timeMin
+                                }
+                                var targetEnd = CGFloat(targetRange.endDate.timeIntervalSince1970.rawValue)
+                                if  targetEnd > timeMax {
+                                    targetEnd = timeMax
+                                }
+                                x = xScale * (targetStart - timeMin)
+                                // Don't let end go off the chart:
+                                let xEnd = xScale * (targetEnd - timeMin)
+                                let rangeWidth = xEnd - x
+                                y = yScale * (bgMax - CGFloat(targetRange.maxValue))
+                                // Make sure range is at least a couple of pixels high:
+                                let rangeHeight = max(yScale * (bgMax - CGFloat(targetRange.minValue)) - y , 3)
+
+                                imContext.cgContext.fill(CGRect(x: x, y: y, width: rangeWidth, height: rangeHeight))
+                           }
+                        
+                        }
+               
+                        pointColor.setFill()
+
                         // Draw the glucose points:
                         for (date,bg) in zip(glucoseDates, glucoseVals) {
                             let bgFloat = CGFloat(bg)
@@ -316,23 +414,40 @@ final class WatchDataManager: NSObject, WCSessionDelegate {
                             imContext.cgContext.addLines(between: predictedPoints)
                             imContext.cgContext.strokePath()
                         }
+                        // Clear the dash pattern:
+                        imContext.cgContext.setLineDash(phase: 0, lengths:[])
+
                         // Put labels last so they are on top of text or points
                         // in case of overlap.
                         // Add a label for max BG on y axis
                         bgMaxLabel.draw(with: CGRect(x: 6, y: 4, width: 40, height: 40), options: .usesLineFragmentOrigin, attributes: attrs, context: nil)
                         // Add a label for min BG on y axis
-                        bgMinLabel.draw(with: CGRect(x: 6, y: yMax-30, width: 40, height: 40), options: .usesLineFragmentOrigin, attributes: attrs, context: nil)
+                        bgMinLabel.draw(with: CGRect(x: 6, y: yMax-28, width: 40, height: 40), options: .usesLineFragmentOrigin, attributes: attrs, context: nil)
                         let timeLabel = "+1h"
                         timeLabel.draw(with: CGRect(x: xMax - 50, y: 4, width: 40, height: 40), options: .usesLineFragmentOrigin, attributes: attrs, context: nil)
-                        
+                        // Draw the box
+                        UIColor.darkGray.setStroke()
+                        imContext.stroke(renderer.format.bounds)
                     }
-                    let graphSizeKB = glucoseGraphData.count/1024
-                    print("Graph size is \(graphSizeKB) kB.")
-
+ 
                     context.glucoseGraphImageData = glucoseGraphData
  
                 }
-
+                
+                if let glucoseTargetRangeSchedule = manager.settings.glucoseTargetRangeSchedule {
+                    if let override = glucoseTargetRangeSchedule.override {
+                        context.glucoseRangeScheduleOverride = GlucoseRangeScheduleOverrideUserInfo(
+                            context: override.context.correspondingUserInfoContext,
+                            startDate: override.start,
+                            endDate: override.end
+                        )
+                    }
+                    
+                    let configuredOverrideContexts = self.deviceDataManager.loopManager.settings.glucoseTargetRangeSchedule?.configuredOverrideContexts ?? []
+                    let configuredUserInfoOverrideContexts = configuredOverrideContexts.map { $0.correspondingUserInfoContext }
+                    context.configuredOverrideContexts = configuredUserInfoOverrideContexts
+                }
+                
                 if let trend = self.deviceDataManager.sensorInfo?.trendType {
                     context.glucoseTrendRawValue = trend.rawValue
                 }
