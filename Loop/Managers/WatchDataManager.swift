@@ -216,16 +216,29 @@ final class WatchDataManager: NSObject, WCSessionDelegate {
                     var graphMaxBG: CGFloat
                     var bgMin: CGFloat
                     var graphMaxBGIncrement: Int
+                    var graphYPadding: CGFloat
+                    
                     if unit == HKUnit.millimolesPerLiter() {
                         graphMaxBG = 10
                         bgMin = 3
                         graphMaxBGIncrement = 1
+                        graphYPadding = 0.1
                     } else {
                         graphMaxBG = 175
                         bgMin = 50
                         graphMaxBGIncrement = 25
+                        graphYPadding = 2
                     }
-                    let roundedBGMax = CGFloat(graphMaxBGIncrement * (1 + (Int(dataBGMax) / graphMaxBGIncrement)))
+                    
+                    // Set the maximum value of the graph in discrete steps (25 mg/dl or 1 mmol/L)
+                    // by doing integer division to get whole number of steps and adding 1 step
+                    var roundedBGMax = CGFloat(graphMaxBGIncrement * (1 + (Int(dataBGMax) / graphMaxBGIncrement)))
+                    // The graphYPadding gives a little headroom if max data value is right at the limit.
+                    if (roundedBGMax - CGFloat(dataBGMax)) <= graphYPadding {
+                        roundedBGMax += CGFloat(graphMaxBGIncrement)
+                    }
+                    // Set the graph max to some default max values if BGs are low, or raise
+                    // in steps set by the above.
                     let bgMax = roundedBGMax > graphMaxBG ? roundedBGMax : graphMaxBG
                     
                     let glucoseChartSize = CGSize(width: 270, height: 152)
