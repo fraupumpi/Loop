@@ -183,20 +183,20 @@ final class WatchDataManager: NSObject, WCSessionDelegate {
                     var predictedDates: [Date] = []
                     var predictedBGs: [Double] = []
                     
-                    //  Predicted BGs:
-                    if let predictedGlucose = state.predictedGlucose {
-                         predictedBGs = predictedGlucose.map {
-                            $0.quantity.doubleValue(for: unit)
-                        }
-                        predictedDates = predictedGlucose.map {
-                                $0.startDate
-                        }
-                    }
-                    
                     // Set the chart to show an hour of past BGs and an hour of future predictions:
                     let dateMin = Date().addingTimeInterval(TimeInterval(minutes: -60))
                     let dateMax = Date().addingTimeInterval(TimeInterval(minutes: 60))
 
+                    // Get predicted BGs within our graph time window:
+                    if let predictedGlucose = state.predictedGlucose {
+                        for entry in predictedGlucose {
+                            if entry.startDate <= dateMax {
+                                predictedBGs.append(entry.quantity.doubleValue(for: unit))
+                                predictedDates.append(entry.startDate)
+                            }
+                        }
+                    }
+                    
                     // Set scale values for graph
                     // Make the max be the larger of the current BG values,
                     // or 175 mg/dl, and force it to be a multiple of 25 mg/dl.
