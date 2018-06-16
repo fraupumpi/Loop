@@ -167,7 +167,7 @@ final class WatchDataManager: NSObject, WCSessionDelegate {
                 glucoseUpdateGroup.enter()
                 manager.glucoseStore.getCachedGlucoseValues(start: Date().addingTimeInterval(TimeInterval(minutes: -70))) { (values) in
                     glucoseVals = values.map({
-                        return $0.quantity.doubleValue(for: unit!)
+                        return $0.quantity.doubleValue(for: unit ?? HKUnit.milligramsPerDeciliter())
                     })
                     glucoseDates = values.map({
                         return $0.startDate
