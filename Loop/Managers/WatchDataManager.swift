@@ -433,11 +433,20 @@ final class WatchDataManager: NSObject, WCSessionDelegate {
                         // Put labels last so they are on top of text or points
                         // in case of overlap.
                         // Add a label for max BG on y axis
-                        bgMaxLabel.draw(with: CGRect(x: 6, y: 4, width: 40, height: 40), options: .usesLineFragmentOrigin, attributes: attrs, context: nil)
+                        let topRect = CGRect(x: 6, y: 4, width: 40, height: 30)
+                        //  Fill this rectangle with a semi-transparent black background
+                        // so we can see the label if it happens to be on top of the data: 
+                        UIColor(white: 0, alpha: 0.4).setFill()
+                        imContext.cgContext.fill(topRect)
+                        bgMaxLabel.draw(with: topRect, options: .usesLineFragmentOrigin, attributes: attrs, context: nil)
                         // Add a label for min BG on y axis
-                        bgMinLabel.draw(with: CGRect(x: 6, y: yMax-28, width: 40, height: 40), options: .usesLineFragmentOrigin, attributes: attrs, context: nil)
+                        let bottomRect = CGRect(x: 6, y: yMax-28, width: 40, height: 30)
+                        imContext.cgContext.fill(bottomRect)
+                        bgMinLabel.draw(with: bottomRect, options: .usesLineFragmentOrigin, attributes: attrs, context: nil)
                         let timeLabel = "+1h"
-                        timeLabel.draw(with: CGRect(x: xMax - 50, y: 4, width: 40, height: 40), options: .usesLineFragmentOrigin, attributes: attrs, context: nil)
+                        let timeRect = CGRect(x: xMax - 50, y: 4, width: 40, height: 30)
+                        imContext.cgContext.fill(timeRect)
+                        timeLabel.draw(with: timeRect, options: .usesLineFragmentOrigin, attributes: attrs, context: nil)
                         // Draw the box
                         UIColor.darkGray.setStroke()
                         imContext.stroke(renderer.format.bounds)
