@@ -49,10 +49,11 @@ final class ChartHUDController: HUDInterfaceController {
             let currentWatch = WKInterfaceDevice.current()
             let bounds = currentWatch.screenBounds
             let graphSize = CGSize(width: bounds.width, height: bounds.width/1.78)
-            //let scene = GlucoseChartScene(size: graphSize)
-            let scene = SKScene(size: graphSize)
+            let scene = GlucoseChartScene(size: graphSize)
+            //let scene = SKScene(size: graphSize)
             scene.scaleMode = .aspectFit
             scene.backgroundColor = .black
+            /*
             let tempLabel = SKLabelNode(text: "No data yet")
             tempLabel.fontColor = .green
             tempLabel.fontSize = 24
@@ -66,7 +67,7 @@ final class ChartHUDController: HUDInterfaceController {
             graphFrame.strokeColor = .gray
             graphFrame.position = graphMiddle
             scene.addChild(graphFrame)
-
+*/
             // Not really doing animation, so set this as low as possible:
             // self.glucoseScene.preferredFramesPerSecond = 1
             self.glucoseScene.presentScene(scene)
