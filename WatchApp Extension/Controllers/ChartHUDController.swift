@@ -10,6 +10,7 @@ import WatchKit
 import WatchConnectivity
 import CGMBLEKit
 import LoopKit
+import SpriteKit
 
 
 final class ChartHUDController: HUDInterfaceController {
@@ -17,9 +18,11 @@ final class ChartHUDController: HUDInterfaceController {
     @IBOutlet weak var iobLabel: WKInterfaceLabel!
     @IBOutlet weak var cobLabel: WKInterfaceLabel!
     @IBOutlet weak var glucoseChart: WKInterfaceImage!
-
+    //@IBOutlet weak var glucoseChartScene: WKInterfaceSKScene!
+    @IBOutlet var glucoseScene: WKInterfaceSKScene!
+    
     private var charts = StatusChartsManager()
-
+    
     override init() {
         super.init()
 
@@ -40,6 +43,37 @@ final class ChartHUDController: HUDInterfaceController {
             DispatchQueue.main.async {
                 self.didAppear()
             }
+            
+            // Set the graph size from watch width, then calculate height
+            // to get the right aspect ratio
+            let currentWatch = WKInterfaceDevice.current()
+            let bounds = currentWatch.screenBounds
+            let graphSize = CGSize(width: bounds.width, height: bounds.width/1.78)
+            //let scene = GlucoseChartScene(size: graphSize)
+            let scene = SKScene(size: graphSize)
+            scene.scaleMode = .aspectFit
+            scene.backgroundColor = .black
+            let tempLabel = SKLabelNode(text: "No data yet")
+            tempLabel.fontColor = .green
+            tempLabel.fontSize = 24
+            tempLabel.position = CGPoint(x: graphSize.width/2, y: graphSize.height/2)
+            tempLabel.verticalAlignmentMode = .center
+            scene.addChild(tempLabel)
+            let graphFrame = SKShapeNode(rectOf: graphSize)
+            let graphMiddle = CGPoint(x: graphSize.width/2, y: graphSize.height/2)
+            graphFrame.lineWidth = 3
+            graphFrame.fillColor = .clear
+            graphFrame.strokeColor = .gray
+            graphFrame.position = graphMiddle
+            scene.addChild(graphFrame)
+
+            // Not really doing animation, so set this as low as possible:
+            // self.glucoseScene.preferredFramesPerSecond = 1
+            self.glucoseScene.presentScene(scene)
+
+            // still needed?
+ //           self.charts.glucoseScene = scene
+ 
         }
     }
 
@@ -135,6 +169,12 @@ final class ChartHUDController: HUDInterfaceController {
         if let chart = self.charts.glucoseChart() {
             self.glucoseChart.setImage(chart)
             self.glucoseChart.setHidden(false)
+        }
+        
+        if let pointsLayer = self.glucoseScene.scene?.childNode(withName: "pointsLayer") {
+            pointsLayer.userData!["glucosePoints"] = self.charts.historicalGlucose
+            // Set the flag that will tell the SpriteKit scene to update glucose plot. 
+            pointsLayer.userData!["needsUpdating"] = true
         }
     }
 }

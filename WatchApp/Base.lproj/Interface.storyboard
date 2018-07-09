@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder.WatchKit.Storyboard" version="3.0" toolsVersion="14113" targetRuntime="watchKit" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="rNf-Mh-tID">
+<document type="com.apple.InterfaceBuilder.WatchKit.Storyboard" version="3.0" toolsVersion="14109" targetRuntime="watchKit" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="rNf-Mh-tID">
     <device id="watch38" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
         <deployment identifier="watchOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14088"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBWatchKitPlugin" version="14033"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBWatchKitPlugin" version="14031"/>
     </dependencies>
     <scenes>
         <!--AddCarbsInterfaceController-->
@@ -368,9 +368,9 @@
                                 </group>
                             </items>
                         </group>
-                        <group width="1" alignment="left" id="GqJ-yv-NKQ">
+                        <group alignment="left" id="GqJ-yv-NKQ">
                             <items>
-                                <imageView alignment="left" contentMode="scaleAspectFill" id="2ky-ah-gaV"/>
+                                <spriteKitScene width="1" alignment="left" id="8QL-TF-TD2"/>
                             </items>
                         </group>
                         <group width="1" alignment="left" id="rSt-1g-97T">
@@ -383,6 +383,7 @@
                                 </label>
                             </items>
                         </group>
+                        <imageView alignment="left" contentMode="scaleAspectFill" id="2ky-ah-gaV"/>
                     </items>
                     <connections>
                         <outlet property="basalLabel" destination="U5L-zt-Ck7" id="mM0-Vf-6uk"/>
@@ -390,13 +391,14 @@
                         <outlet property="eventualGlucoseLabel" destination="yl8-ZP-c3l" id="PTg-ax-ppQ"/>
                         <outlet property="glucoseChart" destination="2ky-ah-gaV" id="H9S-LQ-ByX"/>
                         <outlet property="glucoseLabel" destination="Dt1-kz-jMZ" id="MQj-0o-PaV"/>
+                        <outlet property="glucoseScene" destination="8QL-TF-TD2" id="fl4-2H-3ZQ"/>
                         <outlet property="iobLabel" destination="PI8-dB-Ykw" id="S3x-RE-C7L"/>
                         <outlet property="loopHUDImage" destination="ifw-dh-btK" id="Bc0-er-dfe"/>
                         <outlet property="loopTimer" destination="P2b-9P-EbP" id="5xU-ne-x8i"/>
                     </connections>
                 </controller>
             </objects>
-            <point key="canvasLocation" x="342" y="739"/>
+            <point key="canvasLocation" x="342" y="731"/>
         </scene>
         <!--Static Notification Interface Controller-->
         <scene sceneID="AEw-b0-oYE">
