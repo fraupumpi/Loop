@@ -368,7 +368,7 @@
                                 </group>
                             </items>
                         </group>
-                        <group alignment="left" id="GqJ-yv-NKQ">
+                        <group width="1" height="72" alignment="left" id="GqJ-yv-NKQ">
                             <items>
                                 <spriteKitScene width="1" alignment="left" id="8QL-TF-TD2"/>
                             </items>
@@ -391,14 +391,14 @@
                         <outlet property="eventualGlucoseLabel" destination="yl8-ZP-c3l" id="PTg-ax-ppQ"/>
                         <outlet property="glucoseChart" destination="2ky-ah-gaV" id="H9S-LQ-ByX"/>
                         <outlet property="glucoseLabel" destination="Dt1-kz-jMZ" id="MQj-0o-PaV"/>
-                        <outlet property="glucoseScene" destination="8QL-TF-TD2" id="fl4-2H-3ZQ"/>
                         <outlet property="iobLabel" destination="PI8-dB-Ykw" id="S3x-RE-C7L"/>
                         <outlet property="loopHUDImage" destination="ifw-dh-btK" id="Bc0-er-dfe"/>
                         <outlet property="loopTimer" destination="P2b-9P-EbP" id="5xU-ne-x8i"/>
+                        <outlet property="watchGlucoseScene" destination="8QL-TF-TD2" id="1Gh-Y6-B6a"/>
                     </connections>
                 </controller>
             </objects>
-            <point key="canvasLocation" x="342" y="731"/>
+            <point key="canvasLocation" x="342" y="717.5"/>
         </scene>
         <!--Static Notification Interface Controller-->
         <scene sceneID="AEw-b0-oYE">
