@@ -11,7 +11,7 @@ import CoreGraphics
 import UIKit
 import HealthKit
 import LoopKit
-//import SpriteKit
+import SpriteKit
 
 class StatusChartsManager {
     var unit: HKUnit?
@@ -41,8 +41,9 @@ class StatusChartsManager {
         let yMax = glucoseChartSize.height
         let timeNow = CGFloat(Date().timeIntervalSince1970)
 
-        let dateMax = predictedGlucose?.last?.startDate ?? Date().addingTimeInterval(TimeInterval(minutes: 180))
-        let dateMin = historicalGlucose.first?.startDate ?? Date().addingTimeInterval(TimeInterval(minutes: -180))
+        // Edit here to match what we're using in the SpriteKit version for comparison
+        let dateMax = Date().addingTimeInterval(TimeInterval(minutes: 180))
+        let dateMin = Date().addingTimeInterval(TimeInterval(minutes: -120))
         let timeMax = CGFloat(dateMax.timeIntervalSince1970)
         let timeMin = CGFloat(dateMin.timeIntervalSince1970)
         let yScale = yMax/(bgMax - bgMin)
@@ -256,9 +257,34 @@ class StatusChartsManager {
             print("Adding point with x, y = \(xPos), \(yPos)")
             scene.childNode(withName: "pointsLayer")?.addChild(bgPoint)
         }
+        
         // Erase old labels:
         scene.childNode(withName: "labelLayer")?.removeAllChildren()
-    
+        
+        /*
+        // For debugging, say when the graph was updated:
+        let formatter = DateFormatter()
+        formatter.dateStyle = .none
+        formatter.timeStyle = .short
+        let dateString = formatter.string(from: Date())
+        let timeLabel = SKLabelNode(text: dateString)
+        timeLabel.position = CGPoint(x: scene.size.width/2, y: scene.size.height/1.5)
+        timeLabel.fontSize = 18
+        timeLabel.fontColor = .green
+        timeLabel.alpha = 1
+        scene.childNode(withName: "labelLayer")?.addChild(timeLabel)
+
+        let npoints = historicalGlucose.count
+        let pointLabel = SKLabelNode(text: "\(npoints) pts " + dateString)
+        pointLabel.position = CGPoint(x: 0, y: 0)
+        pointLabel.fontSize = 18
+        pointLabel.fontColor = .yellow
+        pointLabel.alpha = 1
+        scene.childNode(withName: "pointsLayer")?.addChild(pointLabel)
+         */
+        
+        // Below here still to implement: labels, predictions, ranges.
+        
         /*
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.alignment = .center

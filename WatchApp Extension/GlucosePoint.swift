@@ -31,6 +31,7 @@ final class GlucosePoint: SKShapeNode {
         self.path = CGPath(ellipseIn: pointRect, transform: nil)
         self.fillColor = pointColor
         self.strokeColor = .clear
+        self.alpha = 1
     }
 
     required init?(coder aDecoder: NSCoder) {

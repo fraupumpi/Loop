@@ -156,6 +156,6 @@ final class ChartHUDController: HUDInterfaceController {
             self.glucoseChart.setHidden(false)
         }
         
-        //self.charts.glucoseSceneUpdate()
+        charts.glucoseSceneUpdate()
     }
 }
