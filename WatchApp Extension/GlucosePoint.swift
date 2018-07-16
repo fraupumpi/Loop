@@ -21,7 +21,7 @@ final class GlucosePoint: SKShapeNode {
     var glucose: HKQuantity
 
     init(value: SampleValue) {
-        let pointSize: CGFloat = 3.0
+        let pointSize: CGFloat = 2.5
         let pointColor = UIColor(red:158/255, green:215/255, blue:245/255, alpha:1)
 
         self.glucose = value.quantity
