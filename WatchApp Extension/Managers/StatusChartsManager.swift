@@ -250,7 +250,7 @@ class StatusChartsManager {
         scene.childNode(withName: "pointsLayer")?.removeAllChildren()
         // Draw the new glucose points:
         historicalGlucose.forEach { sample in
-            let bgPoint = GlucosePoint(value: sample)
+            let bgPoint = GlucosePoint(value: sample, unit: unit)
             let xPos = scene.xCoord(coordTime: sample.startDate)
             let yPos = scene.yCoord(coordBG: CGFloat(sample.quantity.doubleValue(for: unit)))
             bgPoint.position = CGPoint(x: xPos, y: yPos)

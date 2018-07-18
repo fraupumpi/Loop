@@ -19,13 +19,15 @@ final class GlucosePoint: SKShapeNode {
     
     var time: Date
     var glucose: HKQuantity
-
-    init(value: SampleValue) {
+    var unit: HKUnit
+    
+    init(value: SampleValue, unit: HKUnit) {
         let pointSize: CGFloat = 2.5
         let pointColor = UIColor(red:158/255, green:215/255, blue:245/255, alpha:1)
 
         self.glucose = value.quantity
         self.time = value.startDate
+        self.unit = unit
         super.init()
         let pointRect = CGRect(origin: CGPoint(x: 0, y: 0), size: CGSize(width: pointSize, height: pointSize))
         self.path = CGPath(ellipseIn: pointRect, transform: nil)
