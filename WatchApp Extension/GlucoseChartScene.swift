@@ -30,6 +30,7 @@ final class GlucoseChartScene: SKScene {
     // The graph x duration will always be a fixed length, so go ahead and set
     // the x scaling factor from seconds to points here:
     let graphPastHours: CGFloat = 2.0 // hours of past glucose data to show
+    // If this is changed to a non-integer, be sure to change number formatting of label below
     let graphFutureHours: CGFloat = 3.0 // hours of prediction to show
 
     // Values setting the BG range of the y axis
@@ -46,6 +47,7 @@ final class GlucoseChartScene: SKScene {
     let highColor = UIColor(red:158/255, green:158/255, blue:24/255, alpha:1)
     let lowColor = UIColor(red:158/255, green:58/255, blue:24/255, alpha:1)
 
+    
 
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
@@ -100,6 +102,49 @@ final class GlucoseChartScene: SKScene {
         tempLabel.horizontalAlignmentMode = .center
         labelLayer.addChild(tempLabel)
         
+        // Add labels for the time, the max BG, and the min BG, even if we
+        // don't yet know what all of the values will be.  We can later change the
+        // label text by addressing the labels by name:
+ 
+        // Maybe there's a way to specify these attributes only once?
+        // But can't quite figure it out yet.  Could do a class but
+        // seems like a bit of overkill here.
+        let labelFontSize: CGFloat = 12
+        
+        // Make labels a little transparent to see points behind...
+        let labelAlpha: CGFloat = 0.8
+        
+        let maxBGLabel = SKLabelNode(text: "--")
+        maxBGLabel.position = CGPoint(x: 14, y: size.height - 15)
+        maxBGLabel.fontSize = labelFontSize
+        maxBGLabel.fontName = "HelveticaNeue"
+        maxBGLabel.fontColor = .white
+        maxBGLabel.alpha = labelAlpha
+        maxBGLabel.name = "maxBGLabel"
+        self.addChild(maxBGLabel)
+    
+        let minBGLabel = SKLabelNode(text: "--")
+        minBGLabel.position = CGPoint(x: 14, y: 4)
+        minBGLabel.fontSize = labelFontSize
+        minBGLabel.fontName = "HelveticaNeue"
+        minBGLabel.fontColor = .white
+        minBGLabel.alpha = labelAlpha
+        minBGLabel.name = "minBGLabel"
+        self.addChild(minBGLabel)
+        
+        let formatter = NumberFormatter()
+        // Change this if setting graph hours to non-integer
+        formatter.maximumFractionDigits = 0
+        let timeLabelText = "+" + formatter.string(from: Double(graphFutureHours))! + "h"
+        let timeLabel = SKLabelNode(text: timeLabelText)
+        timeLabel.position = CGPoint(x: size.width - 15, y: size.height - 15)
+        timeLabel.fontSize = labelFontSize
+        timeLabel.fontName = "HelveticaNeue"
+        timeLabel.fontColor = .white
+        timeLabel.alpha = 1
+        timeLabel.name = "timeLabel"
+        self.addChild(timeLabel)
+        
      }
     
     func xCoord(coordTime: Date) -> CGFloat {
@@ -116,7 +161,7 @@ final class GlucoseChartScene: SKScene {
     func setYScale(dataBGMax: CGFloat, unit: HKUnit) {
         // Sets an appropriate maximum value for the graph, depending on the max
         // BG value passed in and on the unit.  Also updates the y scaling of
-        // the graph for subsequent plotting.
+        // the graph for subsequent plotting, and the labeling of the y axis. 
         
         // Depending on units we set the graph limits differently:
         var graphMaxBGFloor: CGFloat
@@ -135,6 +180,9 @@ final class GlucoseChartScene: SKScene {
             graphYPadding = 2
         }
         
+        let formatter = NumberFormatter()
+        formatter.minimumFractionDigits = 0
+        
         // Set the maximum value of the graph in discrete steps (25 mg/dl or 1 mmol/L)
         // by doing integer division to get whole number of steps and adding 1 step
         var roundedBGMax = CGFloat(graphMaxBGIncrement * (1 + (Int(dataBGMax) / graphMaxBGIncrement)))
@@ -146,7 +194,15 @@ final class GlucoseChartScene: SKScene {
         // in steps set by the above.
         self.graphBGMax = roundedBGMax > graphMaxBGFloor ? roundedBGMax : graphMaxBGFloor
 
-        // Set the y scale of the graph in points per unit of BG. 
+        if let minBGLabel = childNode(withName: "minBGLabel") as! SKLabelNode? {
+            minBGLabel.text = formatter.string(from: Double(self.graphBGMin))
+        }
+        
+        if let maxBGLabel = childNode(withName: "maxBGLabel") as! SKLabelNode? {
+            maxBGLabel.text = formatter.string(from: Double(self.graphBGMax))
+        }
+        
+        // Set the y scale of the graph in points per unit of BG.
         self.graphYScale = self.size.height/(self.graphBGMax - self.graphBGMin)
     }
     

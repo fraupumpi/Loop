@@ -260,48 +260,44 @@ class StatusChartsManager {
         
         // Erase old labels:
         scene.childNode(withName: "labelLayer")?.removeAllChildren()
-        
-        /*
-        // For debugging, say when the graph was updated:
-        let formatter = DateFormatter()
-        formatter.dateStyle = .none
-        formatter.timeStyle = .short
-        let dateString = formatter.string(from: Date())
-        let timeLabel = SKLabelNode(text: dateString)
-        timeLabel.position = CGPoint(x: scene.size.width/2, y: scene.size.height/1.5)
-        timeLabel.fontSize = 18
-        timeLabel.fontColor = .green
-        timeLabel.alpha = 1
-        scene.childNode(withName: "labelLayer")?.addChild(timeLabel)
 
-        let npoints = historicalGlucose.count
-        let pointLabel = SKLabelNode(text: "\(npoints) pts " + dateString)
-        pointLabel.position = CGPoint(x: 0, y: 0)
-        pointLabel.fontSize = 18
-        pointLabel.fontColor = .yellow
-        pointLabel.alpha = 1
-        scene.childNode(withName: "pointsLayer")?.addChild(pointLabel)
-         */
+        //  Prediction line:
+//        imContext.setLineDash(phase: 11, lengths: [10, 6])
+ //       imContext.setLineWidth(3)
+        // Create a path with the predicted glucose values:
         
-        // Below here still to implement: labels, predictions, ranges.
         
         /*
-        let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.alignment = .center
+        // Draw the line for the current time:
+        nowPath.move(to: CGPoint(x: xNow, y: 0))
+        nowPath.addLine(to: CGPoint(x: xNow, y: size.height))
+        let nowLine = SKShapeNode(path: nowPath.copy(dashingWithPhase: 0, lengths: [3, 3]))
+        nowLine.strokeColor = .gray
+        nowLine.lineWidth = 2
+        self.addChild(nowLine)
+
         
-        let attrs = [
-            NSAttributedStringKey.font: UIFont(name: "HelveticaNeue", size: 20)!,
-            NSAttributedStringKey.paragraphStyle: paragraphStyle,
-            NSAttributedStringKey.foregroundColor: UIColor.white,
-            NSAttributedStringKey.backgroundColor: UIColor.black,
-            ]
         
-        let numberFormatter = NumberFormatter()
-        numberFormatter.numberStyle = .none
+        if let predictedGlucose = predictedGlucose, predictedGlucose.count > 2 {
+            let forecastPath = CGMutablePath()
+            let firstPoint = predictedGlucose.first
+            let pathStart = CGPoint(x: firstPoint)
+            predictedGlucose.forEach { (sample) in
+                let bgFloat = CGFloat(sample.quantity.doubleValue(for: unit))
+                x = xScale * (CGFloat(sample.startDate.timeIntervalSince1970) - timeMin)
+                y = yScale * (bgMax - bgFloat)
+                predictedPoints.append(CGPoint(x: x, y: y))
+            }
+            
+            // Add points to the path, then draw it:
+            imContext.addLines(between: predictedPoints)
+            imContext.strokePath()
+        }
+*/
         
-        let bgMaxLabel = numberFormatter.string(from: NSNumber(value: Double(bgMax)))!
-        let bgMinLabel = numberFormatter.string(from: NSNumber(value: Double(bgMin)))!
-        */
+        
+        // Below here still to implement: predictions, ranges.
+        
 
         //  !!!  Got to here, need to figure out how to draw a line with SpriteKit
         // Mark the current time with a dashed line:
