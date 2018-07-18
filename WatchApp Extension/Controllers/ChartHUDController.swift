@@ -56,7 +56,7 @@ final class ChartHUDController: HUDInterfaceController {
         glucoseScene.backgroundColor = .black
         
         // Not really doing animation, so set this as low as possible:
-        // self.glucoseScene.preferredFramesPerSecond = 1
+        self.watchGlucoseScene.preferredFramesPerSecond = 1
         self.watchGlucoseScene.presentScene(glucoseScene)
         charts.watchGraphScene = glucoseScene
 

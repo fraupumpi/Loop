@@ -115,7 +115,7 @@ final class GlucoseChartScene: SKScene {
         let labelAlpha: CGFloat = 0.8
         
         let maxBGLabel = SKLabelNode(text: "--")
-        maxBGLabel.position = CGPoint(x: 14, y: size.height - 15)
+        maxBGLabel.position = CGPoint(x: 14, y: size.height - 14)
         maxBGLabel.fontSize = labelFontSize
         maxBGLabel.fontName = "HelveticaNeue"
         maxBGLabel.fontColor = .white
@@ -124,7 +124,7 @@ final class GlucoseChartScene: SKScene {
         self.addChild(maxBGLabel)
     
         let minBGLabel = SKLabelNode(text: "--")
-        minBGLabel.position = CGPoint(x: 14, y: 4)
+        minBGLabel.position = CGPoint(x: 14, y: 3)
         minBGLabel.fontSize = labelFontSize
         minBGLabel.fontName = "HelveticaNeue"
         minBGLabel.fontColor = .white
@@ -137,11 +137,11 @@ final class GlucoseChartScene: SKScene {
         formatter.maximumFractionDigits = 0
         let timeLabelText = "+" + formatter.string(from: Double(graphFutureHours))! + "h"
         let timeLabel = SKLabelNode(text: timeLabelText)
-        timeLabel.position = CGPoint(x: size.width - 15, y: size.height - 15)
+        timeLabel.position = CGPoint(x: size.width - 15, y: size.height - 14)
         timeLabel.fontSize = labelFontSize
         timeLabel.fontName = "HelveticaNeue"
         timeLabel.fontColor = .white
-        timeLabel.alpha = 1
+        timeLabel.alpha = labelAlpha
         timeLabel.name = "timeLabel"
         self.addChild(timeLabel)
         
@@ -206,16 +206,17 @@ final class GlucoseChartScene: SKScene {
         self.graphYScale = self.size.height/(self.graphBGMax - self.graphBGMin)
     }
     
-    /*
-     // Could possibly use this to animate the points to move between glucose updates
+
+     // Animate the glucose points to move between glucose updates
     override func update(_ currentTime: TimeInterval) {
-        // Do updating of the scene here.
-        if let pointsLayer = childNode(withName: "pointsLayer") {
-     // Move the points to the current time:
-            if pointsLayer.children.count > 0 {
-                // Move existing points, using their "time" property
+        if let pointsLayer = childNode(withName: "pointsLayer"), pointsLayer.children.count > 0 {
+            // Move the points to the right x position given current time:
+            pointsLayer.children.forEach { myPoint in
+                let point = myPoint as! GlucosePoint
+                let x = self.xCoord(coordTime: point.time)
+                point.position = CGPoint(x: x, y: point.position.y)
             }
         }
     }
-    */
+    
 }
