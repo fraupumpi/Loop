@@ -81,26 +81,23 @@ final class GlucoseChartScene: SKScene {
         nowLine.strokeColor = .gray
         nowLine.lineWidth = 2
         self.addChild(nowLine)
-        
+ 
+        // Create the child object for the forecast line, even though we don't
+        // have the forecast yet.  Then we can add a new path later as needed:
+        let forecastPath = CGMutablePath()
+        let forecastLine = SKShapeNode(path: forecastPath)
+        forecastLine.strokeColor = pointColor
+        forecastLine.name = "forecastLine"
+        self.addChild(forecastLine)
+
         // Now define some other layers to which we will add points, labels, ranges, and
         // predictions.  These aren't visible, but having these as separate layers
         // lets us easily remove these parts of the graph for redrawing. We give them
         // string names so they can easily be found by name later.
-        let labelLayer = BlankLayer(size: size, position: zeroPoint, name: "labelLayer")
-        self.addChild(labelLayer)
+        
         let pointsLayer = BlankLayer(size: size, position: zeroPoint, name: "pointsLayer")
         self.addChild(pointsLayer)
-        self.addChild(BlankLayer(size: size, position: zeroPoint, name: "predictionLayer"))
-        self.addChild(BlankLayer(size: size, position: zeroPoint, name: "rangeLayer"))
- 
-        let tempLabel = SKLabelNode(text: "No data yet")
-        tempLabel.alpha = 1.0
-        tempLabel.fontColor = .yellow
-        tempLabel.fontSize = 24
-        tempLabel.position = graphMiddle
-        tempLabel.verticalAlignmentMode = .center
-        tempLabel.horizontalAlignmentMode = .center
-        labelLayer.addChild(tempLabel)
+        self.addChild(BlankLayer(size: size, position: zeroPoint, name: "targetLayer"))
         
         // Add labels for the time, the max BG, and the min BG, even if we
         // don't yet know what all of the values will be.  We can later change the
@@ -113,11 +110,12 @@ final class GlucoseChartScene: SKScene {
         
         // Make labels a little transparent to see points behind...
         let labelAlpha: CGFloat = 0.8
+        let labelFont = "HelveticaNeue"
         
         let maxBGLabel = SKLabelNode(text: "--")
         maxBGLabel.position = CGPoint(x: 14, y: size.height - 14)
         maxBGLabel.fontSize = labelFontSize
-        maxBGLabel.fontName = "HelveticaNeue"
+        maxBGLabel.fontName = labelFont
         maxBGLabel.fontColor = .white
         maxBGLabel.alpha = labelAlpha
         maxBGLabel.name = "maxBGLabel"
@@ -126,7 +124,7 @@ final class GlucoseChartScene: SKScene {
         let minBGLabel = SKLabelNode(text: "--")
         minBGLabel.position = CGPoint(x: 14, y: 3)
         minBGLabel.fontSize = labelFontSize
-        minBGLabel.fontName = "HelveticaNeue"
+        minBGLabel.fontName = labelFont
         minBGLabel.fontColor = .white
         minBGLabel.alpha = labelAlpha
         minBGLabel.name = "minBGLabel"
@@ -139,7 +137,7 @@ final class GlucoseChartScene: SKScene {
         let timeLabel = SKLabelNode(text: timeLabelText)
         timeLabel.position = CGPoint(x: size.width - 15, y: size.height - 14)
         timeLabel.fontSize = labelFontSize
-        timeLabel.fontName = "HelveticaNeue"
+        timeLabel.fontName = labelFont
         timeLabel.fontColor = .white
         timeLabel.alpha = labelAlpha
         timeLabel.name = "timeLabel"

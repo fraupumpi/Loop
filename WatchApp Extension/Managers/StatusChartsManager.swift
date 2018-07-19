@@ -258,50 +258,22 @@ class StatusChartsManager {
             scene.childNode(withName: "pointsLayer")?.addChild(bgPoint)
         }
         
-        // Erase old labels:
-        scene.childNode(withName: "labelLayer")?.removeAllChildren()
-
-        //  Prediction line:
-//        imContext.setLineDash(phase: 11, lengths: [10, 6])
- //       imContext.setLineWidth(3)
-        // Create a path with the predicted glucose values:
-        
-        
-        /*
-        // Draw the line for the current time:
-        nowPath.move(to: CGPoint(x: xNow, y: 0))
-        nowPath.addLine(to: CGPoint(x: xNow, y: size.height))
-        let nowLine = SKShapeNode(path: nowPath.copy(dashingWithPhase: 0, lengths: [3, 3]))
-        nowLine.strokeColor = .gray
-        nowLine.lineWidth = 2
-        self.addChild(nowLine)
-
-        
-        
         if let predictedGlucose = predictedGlucose, predictedGlucose.count > 2 {
+            var predictedPoints: [CGPoint] = []
             let forecastPath = CGMutablePath()
-            let firstPoint = predictedGlucose.first
-            let pathStart = CGPoint(x: firstPoint)
             predictedGlucose.forEach { (sample) in
-                let bgFloat = CGFloat(sample.quantity.doubleValue(for: unit))
-                x = xScale * (CGFloat(sample.startDate.timeIntervalSince1970) - timeMin)
-                y = yScale * (bgMax - bgFloat)
+                let x = scene.xCoord(coordTime: sample.startDate)
+                let y = scene.yCoord(coordBG: CGFloat(sample.quantity.doubleValue(for: unit)))
                 predictedPoints.append(CGPoint(x: x, y: y))
             }
-            
-            // Add points to the path, then draw it:
-            imContext.addLines(between: predictedPoints)
-            imContext.strokePath()
+            forecastPath.addLines(between: predictedPoints)
+            if let forecastLine = scene.childNode(withName: "forecastLine") {
+                let forecastNode = forecastLine as! SKShapeNode
+                forecastNode.path = forecastPath.copy(dashingWithPhase: 11, lengths: [5, 3])
+            }
         }
-*/
         
-        
-        // Below here still to implement: predictions, ranges.
-        
-
-        //  !!!  Got to here, need to figure out how to draw a line with SpriteKit
-        // Mark the current time with a dashed line:
-        //UIColor.darkGray.setStroke()
+        // Below here still to implement: ranges.
         
         /*
         imContext.setLineDash(phase: 1, lengths: [6, 6])
