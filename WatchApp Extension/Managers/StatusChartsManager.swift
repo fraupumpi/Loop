@@ -273,22 +273,15 @@ class StatusChartsManager {
             }
         }
         
-        // Below here still to implement: ranges.
-        
-        /*
-        imContext.setLineDash(phase: 1, lengths: [6, 6])
-        imContext.setLineWidth(3)
-        imContext.strokeLineSegments(between: [CGPoint(x: xNow, y: 0), CGPoint(x: xNow, y: yMax - 1)])
-        // Clear the dash pattern:
-        imContext.setLineDash(phase: 0, lengths:[])
-        
-        
-        // Set color for glucose points and target range:
-        pointColor.setFill()
-        
         //  Plot target ranges:
+        
+        // We will color ranges differently depending on whether an override is active,
+        // so set a variable for it.
+        var rangeColor = scene.rangeColor
+        
         if let chartTargetRanges = targetRanges {
-            rangeColor.setFill()
+
+            scene.childNode(withName: "targetLayer")?.removeAllChildren()
             
             // Check for overrides first, since we will color the main
             // range(s) differently depending on active override:
@@ -297,36 +290,41 @@ class StatusChartsManager {
             // expired already can still show up here, so we need
             // to check and only show if they are active:
             if let override = temporaryOverride, override.endDate > Date() {
-                overrideColor.setFill()
-                
                 // Top left corner is start date and max value:
-                // Might be off the graph so keep it in:
-                var targetStart = CGFloat(override.startDate.timeIntervalSince1970)
+                var targetStart = override.startDate
                 // Only show the part of the override that is in the future:
-                if  targetStart < timeNow {
-                    targetStart = timeNow
+                if  targetStart < Date() {
+                    targetStart = Date()
                 }
-                var targetEnd = CGFloat(override.endDate.timeIntervalSince1970)
+                var targetEnd = override.endDate
+                let timeMax = Date().addingTimeInterval(Double(scene.graphFutureHours)*3600)
                 if  targetEnd > timeMax {
                     targetEnd = timeMax
                 }
-                x = xScale * (targetStart - timeMin)
+                let xStart = scene.xCoord(coordTime: targetStart)
                 // Don't let end go off the chart:
-                let xEnd = xScale * (targetEnd - timeMin)
-                let rangeWidth = xEnd - x
-                y = yScale * (bgMax - CGFloat(override.maxValue))
+                let xEnd = scene.xCoord(coordTime: targetEnd)
+                let rangeWidth = xEnd - xStart
+                let yMax = scene.yCoord(coordBG: CGFloat(override.maxValue))
+                let yMin = scene.yCoord(coordBG: CGFloat(override.minValue))
                 // Make sure range is at least a couple of pixels high:
-                let rangeHeight = max(yScale * (bgMax - CGFloat(override.minValue)) - y , 3)
+                let rangeHeight = max(yMax - yMin, 3)
                 
-                imContext.fill(CGRect(x: x, y: y, width: rangeWidth, height: rangeHeight))
+                let overrideRect = SKShapeNode(rect: CGRect(x: xStart, y: yMin, width: rangeWidth, height: rangeHeight))
+                overrideRect.fillColor = scene.rangeColor
+                overrideRect.strokeColor = .clear
+                scene.childNode(withName: "targetLayer")?.addChild(overrideRect)
                 // To mimic the Loop interface, add a second box
                 // after this that reverts to original target color:
                 if targetEnd < timeMax {
-                    rangeColor.setFill()
-                    imContext.fill(CGRect(x: x+rangeWidth, y: y, width: xMax - (x+rangeWidth), height: rangeHeight))
+                    let afterOverrideRect = SKShapeNode(rect: CGRect(x: xEnd, y: yMin, width: scene.xCoord(coordTime: timeMax) - xEnd, height: rangeHeight))
+                    afterOverrideRect.fillColor = scene.rangeOverriddenColor
+                    afterOverrideRect.strokeColor = .clear
+                    scene.childNode(withName: "targetLayer")?.addChild(afterOverrideRect)
                 }
-                // Set a lighter color for main range(s) to follow:
-                rangeOverridenColor.setFill()
+                
+                // When the range is overriden, we color the usual range differently:
+                rangeColor = scene.rangeOverriddenColor
             }
             
             // chartTargetRanges may be an array, so need to
@@ -334,71 +332,27 @@ class StatusChartsManager {
             
             for targetRange in chartTargetRanges {
                 // Top left corner is start date and max value:
-                // Might be off the graph so keep it in:
-                var targetStart = CGFloat(targetRange.startDate.timeIntervalSince1970)
-                if  targetStart < timeMin {
-                    targetStart = timeMin
-                }
-                var targetEnd = CGFloat(targetRange.endDate.timeIntervalSince1970)
+                let targetStart = targetRange.startDate
+                var targetEnd = targetRange.endDate
+                let timeMax = Date().addingTimeInterval(Double(scene.graphFutureHours)*3600)
                 if  targetEnd > timeMax {
                     targetEnd = timeMax
                 }
-                x = xScale * (targetStart - timeMin)
+                let xStart = scene.xCoord(coordTime: targetStart)
                 // Don't let end go off the chart:
-                let xEnd = xScale * (targetEnd - timeMin)
-                let rangeWidth = xEnd - x
-                y = yScale * (bgMax - CGFloat(targetRange.maxValue))
+                let xEnd = scene.xCoord(coordTime: targetEnd)
+                let rangeWidth = xEnd - xStart
+                let yMax = scene.yCoord(coordBG: CGFloat(targetRange.maxValue))
+                let yMin = scene.yCoord(coordBG: CGFloat(targetRange.minValue))
                 // Make sure range is at least a couple of pixels high:
-                let rangeHeight = max(yScale * (bgMax - CGFloat(targetRange.minValue)) - y , 3)
+                let rangeHeight = max(yMax - yMin, 2)
                 
-                imContext.fill(CGRect(x: x, y: y, width: rangeWidth, height: rangeHeight))
+                let targetRect = SKShapeNode(rect: CGRect(x: xStart, y: yMin, width: rangeWidth, height: rangeHeight))
+                targetRect.fillColor = rangeColor
+                targetRect.strokeColor = .clear
+                scene.childNode(withName: "targetLayer")?.addChild(targetRect)
             }
-            
         }
-        
-        pointColor.setFill()
-        */
-        
-        
-        /*
-        pointColor.setStroke()
-        imContext.setLineDash(phase: 11, lengths: [10, 6])
-        imContext.setLineWidth(3)
-        // Create a path with the predicted glucose values:
-        imContext.beginPath()
-        var predictedPoints: [CGPoint] = []
-        
-        if let predictedGlucose = predictedGlucose, predictedGlucose.count > 2 {
-            predictedGlucose.forEach { (sample) in
-                let bgFloat = CGFloat(sample.quantity.doubleValue(for: unit))
-                x = xScale * (CGFloat(sample.startDate.timeIntervalSince1970) - timeMin)
-                y = yScale * (bgMax - bgFloat)
-                predictedPoints.append(CGPoint(x: x, y: y))
-            }
-            
-            // Add points to the path, then draw it:
-            imContext.addLines(between: predictedPoints)
-            imContext.strokePath()
-        }
-        // Clear the dash pattern:
-        imContext.setLineDash(phase: 0, lengths:[])
-        
-        // Put labels last so they are on top of text or points
-        // in case of overlap.
-        // Add a label for max BG on y axis
-        bgMaxLabel.draw(with: CGRect(x: 6, y: 4, width: 40, height: 40), options: .usesLineFragmentOrigin, attributes: attrs, context: nil)
-        // Add a label for min BG on y axis
-        bgMinLabel.draw(with: CGRect(x: 6, y: yMax-28, width: 40, height: 40), options: .usesLineFragmentOrigin, attributes: attrs, context: nil)
-        
-        let timeLabel = "+\(Int(dateMax.timeIntervalSinceNow.hours))h"
-        timeLabel.draw(with: CGRect(x: xMax - 50, y: 4, width: 40, height: 40), options: .usesLineFragmentOrigin, attributes: attrs, context: nil)
-        
-        // Draw the box
-        UIColor.darkGray.setStroke()
-        imContext.stroke(CGRect(origin: CGPoint(x: 0, y: 0), size: glucoseChartSize))
-        
-        return UIGraphicsGetImageFromCurrentImageContext()
-         */
         return
     }
     

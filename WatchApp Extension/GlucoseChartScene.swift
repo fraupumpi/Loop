@@ -43,7 +43,7 @@ final class GlucoseChartScene: SKScene {
     let rangeColor = UIColor(red:158/255, green:215/255, blue:245/255, alpha:0.4)
     let overrideColor = UIColor(red:158/255, green:215/255, blue:245/255, alpha:0.6)
     // Different alpha for main range(s) when override is active
-    let rangeOverridenColor = UIColor(red:158/255, green:215/255, blue:245/255, alpha:0.2)
+    let rangeOverriddenColor = UIColor(red:158/255, green:215/255, blue:245/255, alpha:0.2)
     let highColor = UIColor(red:158/255, green:158/255, blue:24/255, alpha:1)
     let lowColor = UIColor(red:158/255, green:58/255, blue:24/255, alpha:1)
 
