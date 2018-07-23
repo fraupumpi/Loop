@@ -109,25 +109,27 @@ final class GlucoseChartScene: SKScene {
         let labelFontSize: CGFloat = 12
         
         // Make labels a little transparent to see points behind...
-        let labelAlpha: CGFloat = 0.8
+        let labelAlpha: CGFloat = 0.9
         let labelFont = "HelveticaNeue"
         
-        let maxBGLabel = SKLabelNode(text: "--")
+        let maxBGLabel = SKLabelNode(text: "---")
         maxBGLabel.position = CGPoint(x: 14, y: size.height - 14)
         maxBGLabel.fontSize = labelFontSize
         maxBGLabel.fontName = labelFont
         maxBGLabel.fontColor = .white
         maxBGLabel.alpha = labelAlpha
         maxBGLabel.name = "maxBGLabel"
+        maxBGLabel.zPosition = 100
         self.addChild(maxBGLabel)
     
-        let minBGLabel = SKLabelNode(text: "--")
+        let minBGLabel = SKLabelNode(text: "---")
         minBGLabel.position = CGPoint(x: 14, y: 3)
         minBGLabel.fontSize = labelFontSize
         minBGLabel.fontName = labelFont
         minBGLabel.fontColor = .white
         minBGLabel.alpha = labelAlpha
         minBGLabel.name = "minBGLabel"
+        minBGLabel.zPosition = 100
         self.addChild(minBGLabel)
         
         let formatter = NumberFormatter()
@@ -141,9 +143,41 @@ final class GlucoseChartScene: SKScene {
         timeLabel.fontColor = .white
         timeLabel.alpha = labelAlpha
         timeLabel.name = "timeLabel"
+        timeLabel.zPosition = 100
         self.addChild(timeLabel)
         
-     }
+        // Put a rectangle underneath this label that is partially transparent,
+        // to make it stand out over points:
+        let underBoxAlpha: CGFloat = 0.5
+        let underTimeBox = SKShapeNode(rect: CGRect(x: 0, y: 0, width: 20, height: 11))
+        underTimeBox.strokeColor = .clear
+        underTimeBox.fillColor = .black
+        underTimeBox.alpha = underBoxAlpha
+        underTimeBox.zPosition = 10
+        underTimeBox.position = CGPoint(x: timeLabel.position.x - 10, y: timeLabel.position.y)
+        underTimeBox.name = "underTimeBox"
+        self.addChild(underTimeBox)
+        
+        // Now the same for the other labels:
+        let underMaxBox = SKShapeNode(rect: CGRect(x: 0, y: 0, width: 18, height: 11))
+        underMaxBox.strokeColor = .clear
+        underMaxBox.fillColor = .black
+        underMaxBox.alpha = underBoxAlpha
+        underMaxBox.zPosition = 10
+        underMaxBox.position = CGPoint(x: maxBGLabel.position.x - 8, y: maxBGLabel.position.y)
+        underMaxBox.name = "underMaxBox"
+        self.addChild(underMaxBox)
+
+        let underMinBox = SKShapeNode(rect: CGRect(x: 0, y: 0, width: 18, height: 11))
+        underMinBox.strokeColor = .clear
+        underMinBox.fillColor = .black
+        underMinBox.alpha = underBoxAlpha
+        underMinBox.zPosition = 10
+        underMinBox.position = CGPoint(x: minBGLabel.position.x - 8, y: minBGLabel.position.y)
+        underMinBox.name = "underMinBox"
+        self.addChild(underMinBox)
+        
+    }
     
     func xCoord(coordTime: Date) -> CGFloat {
         // Return the x coordinate in the scene, in points, given an input time.
