@@ -368,7 +368,7 @@
                                 </group>
                             </items>
                         </group>
-                        <group width="1" height="72" alignment="left" radius="0.0" id="GqJ-yv-NKQ">
+                        <group width="1" alignment="left" radius="0.0" id="GqJ-yv-NKQ">
                             <items>
                                 <spriteKitScene width="1" height="100" alignment="center" verticalAlignment="center" id="8QL-TF-TD2"/>
                             </items>
