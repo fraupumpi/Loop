@@ -22,6 +22,9 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		014F402F20E786C600CD4613 /* GlucoseChartScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 014F402E20E786C600CD4613 /* GlucoseChartScene.swift */; };
+		0151D0AA20F2A66E00D15C57 /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4344627F20A7A37400C4BE6F /* HealthKit.framework */; };
+		01E2840120F6B8CF00B58AA7 /* GlucosePoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E2840020F6B8CF00B58AA7 /* GlucosePoint.swift */; };
 		43027F0F1DFE0EC900C51989 /* HKUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F526D5E1DF2459000A04910 /* HKUnit.swift */; };
 		4302F4E11D4E9C8900F0FCAF /* TextFieldTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4302F4E01D4E9C8900F0FCAF /* TextFieldTableViewController.swift */; };
 		4302F4E31D4EA54200F0FCAF /* InsulinDeliveryTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4302F4E21D4EA54200F0FCAF /* InsulinDeliveryTableViewController.swift */; };
@@ -442,6 +445,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		014F402E20E786C600CD4613 /* GlucoseChartScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseChartScene.swift; sourceTree = "<group>"; };
+		01E2840020F6B8CF00B58AA7 /* GlucosePoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucosePoint.swift; sourceTree = "<group>"; };
+		01F8BA1C20F2A52700F459A3 /* WatchApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WatchApp.entitlements; sourceTree = "<group>"; };
 		4302F4E01D4E9C8900F0FCAF /* TextFieldTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TextFieldTableViewController.swift; sourceTree = "<group>"; };
 		4302F4E21D4EA54200F0FCAF /* InsulinDeliveryTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InsulinDeliveryTableViewController.swift; sourceTree = "<group>"; };
 		43076BF21DFDBC4B0012A723 /* it.lproj */ = {isa = PBXFileReference; lastKnownFileType = folder; path = it.lproj; sourceTree = "<group>"; };
@@ -716,6 +722,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0151D0AA20F2A66E00D15C57 /* HealthKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -932,6 +939,7 @@
 		43A943731B926B7B0051FA24 /* WatchApp */ = {
 			isa = PBXGroup;
 			children = (
+				01F8BA1C20F2A52700F459A3 /* WatchApp.entitlements */,
 				894F71E11FFEC4D8007D365C /* Assets.xcassets */,
 				C1C73F0F1DE3D0270022FC89 /* InfoPlist.strings */,
 				43F5C2D61B92A4DC003EB13D /* Info.plist */,
@@ -952,6 +960,8 @@
 				43A943911B926B7B0051FA24 /* Info.plist */,
 				43A9438D1B926B7B0051FA24 /* ComplicationController.swift */,
 				43A943871B926B7B0051FA24 /* ExtensionDelegate.swift */,
+				014F402E20E786C600CD4613 /* GlucoseChartScene.swift */,
+				01E2840020F6B8CF00B58AA7 /* GlucosePoint.swift */,
 				43A9438F1B926B7B0051FA24 /* Assets.xcassets */,
 				4328E0121CFBE1B700E199AA /* Controllers */,
 				4328E01F1CFBE2B100E199AA /* Extensions */,
@@ -1461,7 +1471,7 @@
 						LastSwiftMigration = 0800;
 						SystemCapabilities = {
 							com.apple.ApplicationGroups.iOS = {
-								enabled = 0;
+								enabled = 1;
 							};
 							com.apple.BackgroundModes.watchos.app = {
 								enabled = 0;
@@ -1872,6 +1882,7 @@
 				4F73F5FC20E2E7FA00E8D82C /* GlucoseStore.swift in Sources */,
 				4FE3475E20D5D77900A86D03 /* StatusChartsManager.swift in Sources */,
 				432CF87520D8AC950066B889 /* NSUserDefaults.swift in Sources */,
+				014F402F20E786C600CD4613 /* GlucoseChartScene.swift in Sources */,
 				43027F0F1DFE0EC900C51989 /* HKUnit.swift in Sources */,
 				4344629220A7C19800C4BE6F /* ButtonGroup.swift in Sources */,
 				4F7E8AC920E2AC3700AEA65E /* WatchDatedRange.swift in Sources */,
@@ -1879,6 +1890,7 @@
 				43DE925A1C5479E4001FFDE1 /* CarbEntryUserInfo.swift in Sources */,
 				4FF0F75E20E1E5D100FC6291 /* PersistenceController.swift in Sources */,
 				43BFF0B51E45C1E700FF19A9 /* NumberFormatter.swift in Sources */,
+				01E2840120F6B8CF00B58AA7 /* GlucosePoint.swift in Sources */,
 				43A9438E1B926B7B0051FA24 /* ComplicationController.swift in Sources */,
 				4328E01A1CFBE1DA00E199AA /* ActionHUDController.swift in Sources */,
 				4F11D3C320DD84DB006E072C /* GlucoseBackfillRequestUserInfo.swift in Sources */,
