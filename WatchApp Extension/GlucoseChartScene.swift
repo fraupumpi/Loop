@@ -82,6 +82,23 @@ final class GlucoseChartScene: SKScene {
         nowLine.lineWidth = 2
         self.addChild(nowLine)
  
+        // Try vertical grid lines for hours:
+        for hour in -Int(graphPastHours)..<Int(graphFutureHours) {
+            if hour == 0 {
+                continue
+            }
+            let gridPath = CGMutablePath()
+            let xHour = CGFloat(Int(graphPastHours) + hour)*self.graphXScale
+            gridPath.move(to: CGPoint(x: xHour, y: 0))
+            gridPath.addLine(to: CGPoint(x: xHour, y: size.height))
+            let gridLine = SKShapeNode(path: gridPath)
+            gridLine.strokeColor = .gray
+            gridLine.lineWidth = 1
+            gridLine.alpha = 0.5
+            gridLine.isAntialiased = false
+            self.addChild(gridLine)
+        }
+        
         // Create the child object for the forecast line, even though we don't
         // have the forecast yet.  Then we can add a new path later as needed:
         let forecastPath = CGMutablePath()
