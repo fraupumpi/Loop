@@ -70,6 +70,8 @@ final class ChartHUDController: HUDInterfaceController {
         super.willActivate()
 
         loopManager?.glucoseStore.maybeRequestGlucoseBackfill()
+        // Make sure the scene doesn't stay paused:
+        self.watchGlucoseScene.isPaused = false
     }
 
     override func update() {
