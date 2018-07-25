@@ -94,6 +94,8 @@ final class GlucoseChartScene: SKScene {
             let gridLine = SKShapeNode(path: gridPath)
             gridLine.strokeColor = .gray
             gridLine.lineWidth = 1
+            gridLine.alpha = 0.5
+            gridLine.isAntialiased = false
             self.addChild(gridLine)
         }
         
