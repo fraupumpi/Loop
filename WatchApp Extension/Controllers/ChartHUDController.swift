@@ -89,7 +89,7 @@ final class ChartHUDController: HUDInterfaceController, WKCrownDelegate {
         iobLabel.setHidden(true)
         if let activeInsulin = activeContext.IOB, let valueStr = insulinFormatter.string(from:NSNumber(value:activeInsulin)) {
             iobLabel.setText(String(format: NSLocalizedString(
-                "IOB %1$@ U",
+                "%1$@ U",
                 comment: "The subtitle format describing units of active insulin. (1: localized insulin value description)"),
                                        valueStr))
             iobLabel.setHidden(false)
@@ -101,15 +101,15 @@ final class ChartHUDController: HUDInterfaceController, WKCrownDelegate {
         carbFormatter.numberStyle = .decimal
         carbFormatter.maximumFractionDigits = 0
         let valueStr = carbFormatter.string(from:NSNumber(value:carbsOnBoard))
-        cobLabel.setText(String(format: NSLocalizedString("COB %1$@ g", comment: "The subtitle format describing grams of active carbs. (1: localized carb value description)"), valueStr!))
+        cobLabel.setText(String(format: NSLocalizedString("%1$@ g", comment: "The subtitle format describing grams of active carbs. (1: localized carb value description)"), valueStr!))
         cobLabel.setHidden(false)
 
         basalLabel.setHidden(true)
         if let tempBasal = activeContext.lastNetTempBasalDose {
             let basalFormatter = NumberFormatter()
             basalFormatter.numberStyle = .decimal
-            basalFormatter.minimumFractionDigits = 1
-            basalFormatter.maximumFractionDigits = 3
+            basalFormatter.minimumFractionDigits = 0
+            basalFormatter.maximumFractionDigits = 1
             basalFormatter.positivePrefix = basalFormatter.plusSign
             let valueStr = basalFormatter.string(from:NSNumber(value:tempBasal))
 
