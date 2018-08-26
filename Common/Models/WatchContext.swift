@@ -42,6 +42,8 @@ final class WatchContext: NSObject, RawRepresentable {
     var reservoirPercentage: Double?
     var batteryPercentage: Double?
 
+    var cgm: CGM?
+
     override init() {
         super.init()
     }
@@ -56,14 +58,14 @@ final class WatchContext: NSObject, RawRepresentable {
         if let unitString = rawValue["gu"] as? String {
             let unit = HKUnit(from: unitString)
             preferredGlucoseUnit = unit
+        }
 
-            if let glucoseValue = rawValue["gv"] as? Double {
-                glucose = HKQuantity(unit: unit, doubleValue: glucoseValue)
-            }
+        if let glucoseValue = rawValue["gv"] as? Double {
+            glucose = HKQuantity(unit: preferredGlucoseUnit ?? .milligramsPerDeciliter, doubleValue: glucoseValue)
+        }
 
-            if let glucoseValue = rawValue["egv"] as? Double {
-                eventualGlucose = HKQuantity(unit: unit, doubleValue: glucoseValue)
-            }
+        if let glucoseValue = rawValue["egv"] as? Double {
+            eventualGlucose = HKQuantity(unit: preferredGlucoseUnit ?? .milligramsPerDeciliter, doubleValue: glucoseValue)
         }
 
         glucoseTrendRawValue = rawValue["gt"] as? Int
@@ -90,6 +92,10 @@ final class WatchContext: NSObject, RawRepresentable {
         recommendedBolusDose = rawValue["rbo"] as? Double
         COB = rawValue["cob"] as? Double
         maxBolus = rawValue["mb"] as? Double
+
+        if let cgmRawValue = rawValue["cgm"] as? CGM.RawValue {
+            cgm = CGM(rawValue: cgmRawValue)
+        }
     }
 
     var rawValue: RawValue {
@@ -100,13 +106,15 @@ final class WatchContext: NSObject, RawRepresentable {
         raw["ba"] = lastNetTempBasalDose
         raw["bad"] = lastNetTempBasalDate
         raw["bp"] = batteryPercentage
+
+        raw["cgm"] = cgm?.rawValue
+
         raw["cob"] = COB
 
-        if let unit = preferredGlucoseUnit {
-            raw["egv"] = eventualGlucose?.doubleValue(for: unit)
-            raw["gu"] = unit.unitString
-            raw["gv"] = glucose?.doubleValue(for: unit)
-        }
+        let unit = preferredGlucoseUnit ?? .milligramsPerDeciliter
+        raw["egv"] = eventualGlucose?.doubleValue(for: unit)
+        raw["gu"] = preferredGlucoseUnit?.unitString
+        raw["gv"] = glucose?.doubleValue(for: unit)
 
         raw["gt"] = glucoseTrendRawValue
         raw["gd"] = glucoseDate

@@ -25,7 +25,7 @@ final class AnalyticsManager: IdentifiableClass {
             amplitudeService = AmplitudeService(APIKey: nil)
         }
 
-        logger = DiagnosticLogger.shared?.forCategory(type(of: self).className)
+        logger = DiagnosticLogger.shared.forCategory(type(of: self).className)
     }
 
     static let shared = AnalyticsManager()
@@ -61,20 +61,24 @@ final class AnalyticsManager: IdentifiableClass {
 
     // MARK: - Config Events
 
-    func didChangeRileyLinkConnectionState() {
-        logEvent("RileyLink Connection")
+    func transmitterTimeDidDrift(_ drift: TimeInterval) {
+        logEvent("Transmitter time change", withProperties: ["value" : drift], outOfSession: true)
     }
 
-    func transmitterTimeDidDrift(_ drift: TimeInterval) {
-        logEvent("Transmitter time change", withProperties: ["value" : drift])
+    func pumpTimeDidDrift(_ drift: TimeInterval) {
+        logEvent("Pump time change", withProperties: ["value": drift], outOfSession: true)
+    }
+
+    func punpTimeZoneDidChange() {
+        logEvent("Pump time zone change", outOfSession: true)
     }
 
     func pumpBatteryWasReplaced() {
-        logEvent("Pump battery replacement")
+        logEvent("Pump battery replacement", outOfSession: true)
     }
 
     func reservoirWasRewound() {
-        logEvent("Pump reservoir rewind")
+        logEvent("Pump reservoir rewind", outOfSession: true)
     }
 
     func didChangeBasalRateSchedule() {
@@ -93,13 +97,7 @@ final class AnalyticsManager: IdentifiableClass {
         logEvent("Insulin sensitivity change")
     }
 
-    func didChangeGlucoseTargetRangeSchedule() {
-        logEvent("Glucose target range change")
-    }
-
     func didChangeLoopSettings(from oldValue: LoopSettings, to newValue: LoopSettings) {
-        logEvent("Loop settings change")
-
         if newValue.maximumBasalRatePerHour != oldValue.maximumBasalRatePerHour {
             logEvent("Maximum basal rate change")
         }
@@ -111,7 +109,26 @@ final class AnalyticsManager: IdentifiableClass {
         if newValue.suspendThreshold != oldValue.suspendThreshold {
             logEvent("Minimum BG Guard change")
         }
+
+        if newValue.dosingEnabled != oldValue.dosingEnabled {
+            logEvent("Closed loop enabled change")
+        }
+
+        if newValue.retrospectiveCorrectionEnabled != oldValue.retrospectiveCorrectionEnabled {
+            logEvent("Retrospective correction enabled change")
+        }
+
+        if newValue.glucoseTargetRangeSchedule != oldValue.glucoseTargetRangeSchedule {
+            if newValue.glucoseTargetRangeSchedule?.timeZone != oldValue.glucoseTargetRangeSchedule?.timeZone {
+                self.punpTimeZoneDidChange()
+            } else if newValue.glucoseTargetRangeSchedule?.override != oldValue.glucoseTargetRangeSchedule?.override {
+                logEvent("Glucose target range override change", outOfSession: true)
+            } else {
+                logEvent("Glucose target range change")
+            }
+        }
     }
+
 
     // MARK: - Loop Events
 
@@ -125,6 +142,10 @@ final class AnalyticsManager: IdentifiableClass {
 
     func didSetBolusFromWatch(_ units: Double) {
         logEvent("Bolus set", withProperties: ["source" : "Watch"], outOfSession: true)
+    }
+
+    func didFetchNewCGMData() {
+        logEvent("CGM Fetch", outOfSession: true)
     }
 
     func loopDidSucceed() {
